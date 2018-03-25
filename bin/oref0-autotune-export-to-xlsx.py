@@ -16,13 +16,6 @@
 import json
 import glob, os, sys
 
-# 
-try:
-    import xlsxwriter
-except:
-    print "This software requires XlsxWriter package. Install it with 'sudo pip install XlsxWriter', see http://xlsxwriter.readthedocs.io/"
-    sys.exit(1)
-
 import datetime
 import argparse
 import re
@@ -154,7 +147,7 @@ def sortedFilenames():
 PROFILE_FIELDS=['max_iob', 'carb_ratio', 'csf', 'max_basal', 'sens']
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Export oref0 autotune files to Microsoft Excel')
+    parser = argparse.ArgumentParser(description='Export oref0 autotune files to Microsoft Excel. Requires the xlsWriter package.')
     parser.add_argument('-d', '--dir', help='openaps directory', default='.')
     parser.add_argument('-o', '--output', help='default autotune.xlsx', default='autotune.xlsx')
     parser.add_argument('--version', action='version', version='%(prog)s 0.0.4-dev')
@@ -162,6 +155,15 @@ if __name__ == '__main__':
 
     # change to openaps directory
     os.chdir(args.dir)
+
+    # Import xlswriter. Do this here, instead of at the top of the file, so that
+    # --help will work even if you don't have it.
+    try:
+        import xlsxwriter
+    except:
+        print "This software requires XlsxWriter package. Install it with 'sudo pip install XlsxWriter', see http://xlsxwriter.readthedocs.io/"
+        sys.exit(1)
+
 
     print "Writing headers to Microsoft Excel file %s" % args.output
     workbook = xlsxwriter.Workbook(args.output)

@@ -1,5 +1,22 @@
 #!/bin/bash
 
+self=$(basename $0)
+
+function usage ( ) {
+cat <<EOF
+Usage: $self
+Set radio parameters for talking to a Medtronic pump. This script is normally
+invoked via Python wrapper oref0_subg_ww_radio_parameters.py.
+EOF
+}
+
+case "$1" in
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+esac
+
 # set SERIAL_PORT from environment variable, or first argument, or default to /dev/mmeowlink
 SERIAL_PORT=${SERIAL_PORT-${1-/dev/mmeowlink}}
 

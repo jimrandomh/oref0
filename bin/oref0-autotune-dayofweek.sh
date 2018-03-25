@@ -9,6 +9,12 @@ DOW=$(date +%u)
 
 if [ -z $myopenaps ] || [ -z $nsurl ]; then
   echo "Usage: $0 ~/myopenaps http://mynightscouthost.herokuapp.com"
+  echo "If you have day-of-the-week autotune profiles named like"
+  echo '"myopenaps/autotune/profile-day0.json", copies the profile for whichever day'
+  echo "today is to myopenaps/autotune/profile.json and reruns autotune. Day 0 is"
+  echo "Sunday, day 1 is Monday, etc."
+  echo
+  echo "This script is not used up by a default install."
   exit
 fi
 

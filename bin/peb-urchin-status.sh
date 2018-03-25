@@ -1,4 +1,20 @@
 #!/bin/bash
+
+self=$(basename $0)
+function usage ( ) {
+cat <<EOT
+Usage: $self <MAC>
+Collect status information to display on a Pebble SmarthWatch. Runs from
+crontab, if you indicated you have a Pebble during oref0-setup.
+EOT
+}
+
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+
 MAC=$1
 
 if ! ( rfcomm show hci0 | grep -q $MAC ) ; then

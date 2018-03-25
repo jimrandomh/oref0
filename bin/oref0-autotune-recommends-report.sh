@@ -33,8 +33,19 @@ if [[ `uname` == 'Darwin' ]] ; then
     alias date='gdate'
 fi
 
-if [ $# -ne 1 ]; then
+function usage () {
     echo "Usage: ./oref0-autotune-recommends-report.sh <OpenAPS Loop Directory Path>"
+    echo "Create a summary report of Autotune recommendations, and store it in"
+    echo "<loop directory>/autotune/autotune_recommendations.log"
+}
+
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+if [ $# -ne 1 ]; then
+    usage
     exit 1
 fi
 

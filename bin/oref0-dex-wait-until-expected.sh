@@ -1,5 +1,21 @@
 #!/bin/bash
 
+self=$(basename $0)
+function usage () {
+cat <<EOT
+Usage: $self <glucose.json> <sample-interval> <max-wait>
+Sleep until a new glucose value is expected from the CGM. Takes a log of recent
+glucose samples, the sample interval, and the maximum amount of time to wait.
+EOT
+}
+
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+
+
 GLUCOSE=$1
 
 OLD=${2-5}

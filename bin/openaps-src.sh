@@ -1,5 +1,21 @@
 #!/bin/bash
 
+self=$(basename $0)
+function usage () {
+cat <<EOT
+Usage: $self
+
+Install development tools and download source code to OpenAPS projects from
+GitHub to ~/src. This is not run as part of a normal end-user setup of OpenAPS,
+but may be useful for developers or for advanced troubleshooting.
+EOT
+}
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+
 apt-get install -y sudo
 sudo apt-get update
 sudo apt-get install -y git python python-dev python-software-properties python-numpy python-pip nodejs-legacy npm watchdog strace tcpdump screen acpid vim locate jq lm-sensors && \

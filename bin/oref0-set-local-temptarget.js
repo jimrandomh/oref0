@@ -18,6 +18,11 @@ function usage ( ) {
     console.log('usage: ', process.argv[1], '<target> <duration> [starttime]');
     console.log('example: ', process.argv[1], '110 60');
     console.log('example: ', process.argv[1], '120 30 2017-10-18:00:15:00.000Z');
+    console.log("");
+    console.log("Given a temporary target range as command-line arguments, formats it as JSON.");
+    console.log("If no start time is given, the current time is used.");
+    // TODO: Document whether <target> is always in mg/dL, or if it can
+    // sometimes be mmol/L
 }
 
 if (!module.parent) {

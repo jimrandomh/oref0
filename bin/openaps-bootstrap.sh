@@ -1,4 +1,22 @@
 #!/bin/bash
+
+self=$(basename $0)
+function usage () {
+cat <<EOT
+Usage: $self
+
+Prompt for wifi credentials, attempt to connect, download the OpenAPS oref0
+installer from github (master branch), and then run the next step of the
+installer. If this all succeeds, installation continues in openaps-install.sh.
+EOT
+}
+
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+
 (
 dmesg -D
 echo Scanning for wifi networks:

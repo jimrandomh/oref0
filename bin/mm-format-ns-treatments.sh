@@ -10,8 +10,8 @@ self=$(basename $0)
 function usage ( ) {
 
 cat <<EOT
-$self <pump-history-zoned.json> <model.json>
-$self - Format medtronic history data into Nightscout treatments data.
+Usage: $self <pump-history-zoned.json> <model.json>
+Format medtronic history data into Nightscout treatments data.
 EOT
 }
 

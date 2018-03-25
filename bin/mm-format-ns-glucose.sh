@@ -12,8 +12,8 @@ self=$(basename $0)
 function usage ( ) {
 
 cat <<EOT
-$self [--oref0] <medtronic-glucose.json>
-$self - Format Medtronic glucose data into something acceptable to Nightscout.
+Usage: $self [--oref0] <medtronic-glucose.json>
+Format Medtronic glucose data into something acceptable to Nightscout.
 EOT
 }
 

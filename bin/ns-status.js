@@ -51,7 +51,7 @@ function uploaderStatus (status) {
 if (!module.parent) {
 
     var argv = require('yargs')
-        .usage("$0 <clock.json> <iob.json> <suggested.json> <enacted.json> <battery.json> <reservoir.json> <status.json> [--uploader uploader.json] [mmtune.json]")
+        .usage("Usage: $0 <clock.json> <iob.json> <suggested.json> <enacted.json> <battery.json> <reservoir.json> <status.json> [--uploader uploader.json] [mmtune.json]")
         .option('uploader', {
             alias: 'u',
             describe: "Uploader battery status",

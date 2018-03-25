@@ -19,8 +19,8 @@ BACKUP_AREA=${1-${BACKUP_AREA-/var/cache/openaps-ruination}}
 function usage ( ) {
 
 cat <<EOF
-$self
-$self - Check if git commit history is longer than 5000 commits, and re-initialize .git if so.
+Usage: $self
+Check if git commit history is longer than 5000 commits, and re-initialize .git if so.
 EOF
 }
 

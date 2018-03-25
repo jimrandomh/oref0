@@ -1,5 +1,21 @@
 #!/bin/bash
 
+self=$(basename $0)
+function usage ( ) {
+cat <<EOF
+Usage: $self
+Upload data to Nightscout. Normally runs from crontab.
+EOF
+}
+
+case "$1" in
+  --help|help|-h)
+    usage
+    exit 0
+    ;;
+esac
+
+
 echo "Checking entries-last-date.json..."
 if [ -e upload/entries-last-date.json ]; then
     LAST_TIME=$(jq -s ".[0].date" upload/entries-last-date.json)

@@ -1,6 +1,27 @@
 #!/bin/bash
 set -e
 
+self=$(basename $0)
+function usage () {
+cat <<EOT
+Usage: $self
+
+OpenAPS installer. This is downloaded and executed by openaps-bootstrap.sh (but
+you can run it directly). Interactively configures your rig's hostname, account
+passwords, timezone, and log-file rotation. Then downloads and runs
+openaps-packages.sh from GitHub (branch "dev"), checks out oref0 from GitHub
+(master branch), and runs oref0-setup.sh to interactively configure pump and
+CGM settings.
+
+EOT
+}
+
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+
 read -p "Enter your rig's new hostname (this will be your rig's "name" in the future, so make sure to write it down): " -r
 myrighostname=$REPLY
 echo $myrighostname > /etc/hostname

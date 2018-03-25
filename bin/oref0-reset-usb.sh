@@ -17,8 +17,8 @@ self=$(basename $0)
 function usage ( ) {
 
 cat <<EOF
-$self
-$self - Drop USB stack, rebind the usb kernel modules.
+Usage: $self
+Drop USB stack, rebind the usb kernel modules.
 EOF
 }
 

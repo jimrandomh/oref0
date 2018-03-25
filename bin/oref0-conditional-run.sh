@@ -5,9 +5,22 @@ export FILE=$1
 export FILE2=$2
 export COMMAND=$3
 
+self=$(basename $0)
+function usage () {
+cat <<EOT
+Usage: $self <target report> <age-check report>
+EOT
+}
+
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+
 if test ! -n "$FILE"; then
-  echo "Usage: oref0-crun <target report> <age-check report>"
-  exit
+  usage
+  exit 1
 fi
 
 if test ! -f $FILE; then

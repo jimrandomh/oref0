@@ -27,6 +27,21 @@ else
   exec 4>/dev/null
 fi
 
+self=$(basename $0)
+usage () {
+    cat <<EOT
+Usage: $self
+The main pump loop. Syncs with an insulin pump, enacts temporary basals and
+SMB boluses. Normally runs from crontab.
+EOT
+}
+case "$1" in
+  --help|help|-h)
+    usage
+    exit 0
+    ;;
+esac
+
 # old pump-loop
 old_main() {
     prep

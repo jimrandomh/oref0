@@ -20,8 +20,9 @@ EOF
 }
 
 case $1 in
-  help)
+  help|-h|--help)
     usage
+    exit 0
     ;;
   *)
     # curl -s ${REPORT_ENDPOINT} | json

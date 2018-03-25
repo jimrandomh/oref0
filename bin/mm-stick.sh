@@ -1,6 +1,7 @@
 #!/bin/bash -eu
 
 # Author: Ben West @bewest
+ls -l /proc/self/fd
 
 # Written for decocare v0.0.17.
 self=$(basename $0)

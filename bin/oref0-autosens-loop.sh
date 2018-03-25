@@ -1,4 +1,7 @@
 #!/bin/bash
+
+self=$(basename $0)
+
 main() {
     echo
     echo Starting oref0-autosens-loop at $(date):
@@ -12,6 +15,21 @@ main() {
     touch /tmp/autons-completed
     echo Completed oref0-autons-loop at $(date)
 }
+
+function usage() {
+    cat <<EOT
+Usage: $self
+Autosens loop. Checks (once) how long it's been since autosens has run, checks
+for various trouble conditions (high load, high CPU temperature), and if it's
+been 30 minutes since autosens has run and everything is okay, runs
+oref0-detect-sensitivity. Working directory should be myopenaps.
+EOT
+}
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
 
 function overtemp {
     # check for CPU temperature above 85°C

@@ -19,8 +19,8 @@ BACKUP_AREA=${1-${BACKUP_AREA-/var/cache/openaps-ruination}}
 function usage ( ) {
 
 cat <<EOF
-$self
-$self - Wipe out all history, forcibly re-initialzize openaps from scratch.
+Usage: $self
+Wipe out all history, forcibly re-initialzize openaps from scratch.
 EOF
 }
 

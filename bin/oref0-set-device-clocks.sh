@@ -26,10 +26,9 @@ CGM=${4-cgm}
 die() { echo "$@" ; exit 1; }
 self=$(basename $0)
 function usage ( ) {
-
 cat <<EOF
-$self
-$self - Set pump and CGM clocks based on NTP time if avaialble.
+Usage: $self
+Set pump and CGM clocks based on NTP time if avaialble.
 EOF
 }
 

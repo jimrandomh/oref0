@@ -1,5 +1,19 @@
 #!/bin/bash
 
+self = $(basename $0)
+
+function usage () {
+cat <<EOT
+Usage: $self
+EOT
+}
+
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+
 date
 cp -rf xdrip/glucose.json xdrip/last-glucose.json
 curl --compressed -s http://localhost:5000/api/v1/entries?count=288 | json -e "this.glucose = this.sgv" > xdrip/glucose.json

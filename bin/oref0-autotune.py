@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Python version of oref0-autotune.sh
 # Original bash code: scottleibrand, pietergit, beached, danamlewis
 

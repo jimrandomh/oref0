@@ -4,7 +4,7 @@ WITHIN=0
 
 function usage ( ) {
 cat <<EOF
-$self [--since <seconds|0>] <file> [<file>...]
+Usage: $self [--since <seconds|0>] <file> [<file>...]
 cat files mentioned.
 If --since seconds is specified, the file will only be cat'd if the files last
 modification occurred within <seconds>.

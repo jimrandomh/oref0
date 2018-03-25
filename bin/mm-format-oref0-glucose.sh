@@ -11,8 +11,8 @@ OUTPUT=${2-/dev/fd/1}
 function usage ( ) {
 
 cat <<EOT
-$self <glucose-history.json>
-$self - Format medtronic glucose data into oref0 format. 
+Usage: $self <glucose-history.json>
+Format medtronic glucose data into oref0 format.
 EOT
 }
 

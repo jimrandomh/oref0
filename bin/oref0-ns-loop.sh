@@ -4,6 +4,12 @@
 
 # main ns-loop
 main() {
+    case "$1" in
+      --help|-h|help)
+        usage
+        exit 0
+    esac
+
     echo
     echo Starting oref0-ns-loop at $(date):
     if grep "MDT cgm" openaps.ini 2>&1 >/dev/null; then
@@ -28,6 +34,14 @@ main() {
     upload
     touch /tmp/ns-loop-completed
     echo Completed oref0-ns-loop at $(date)
+}
+
+self=$(basename $0)
+function usage {
+    cat <<EOT
+Usage: $self
+Sync data with Nightscout. Typically runs from crontabb.
+EOT
 }
 
 function overtemp {

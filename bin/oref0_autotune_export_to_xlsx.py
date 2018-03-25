@@ -16,13 +16,6 @@
 import json
 import glob, os, sys
 
-# 
-try:
-    import xlsxwriter
-except:
-    print "This software requires XlsxWriter package. Install it with 'sudo pip install XlsxWriter', see http://xlsxwriter.readthedocs.io/"
-    sys.exit(1)
-
 import datetime
 import argparse
 import re
@@ -121,6 +114,14 @@ if __name__ == '__main__':
 
     # change to autotune directory
     os.chdir(args.dir)
+    
+    # Import xlswriter. Do this here, instead of at the top of the file, so that
+    # --help will work even if you don't have it.
+    try:
+        import xlsxwriter
+    except:
+        print "This software requires XlsxWriter package. Install it with 'sudo pip install XlsxWriter', see http://xlsxwriter.readthedocs.io/"
+        sys.exit(1)
 
     print "Writing headers to Microsoft Excel file %s" % args.output
     workbook = xlsxwriter.Workbook(args.output)

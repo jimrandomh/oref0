@@ -28,8 +28,8 @@ self=$(basename $0)
 function usage ( ) {
 
 cat <<EOF
-$self
-$self - If NTP is unavailable, set system time to match pump time if it's later
+Usage: $self
+If NTP is unavailable, set system time to match pump time if it's later
 EOF
 }
 

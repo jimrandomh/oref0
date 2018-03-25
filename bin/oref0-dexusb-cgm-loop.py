@@ -22,6 +22,13 @@ import time
 import subprocess
 import datetime
 import dateutil.parser
+import sys
+
+if len(sys.argv)>1 and sys.argv[1] in ["-h", "--help", "help"]:
+    print("Usage: %s" % sys.argv[0])
+    print("Go into a loop, sampling CGM data from an attached Dexcom G4, feeding it to OpenAPS and uploading it to Nightscout.")
+    sys.exit(0)
+
 
 # How to integrate with openaps.
 # Easiest way is to use oref0-setup.sh. This wil:
@@ -78,7 +85,6 @@ def hours_since(dt):
     if dt==-1:
             return HOURS
     current_dt=datetime.datetime.now()
-    cgm_dt=dateutil.parser.parse(dt)
     delta_t=current_dt-cgm_dt
     delta_hours=int(delta_t.days*24 + delta_t.seconds//3600)
     if delta_hours<1:

@@ -10,8 +10,8 @@ OUTPUT=${2}
 
 function usage ( ) {
 cat <<EOF
-$self <entries.json> <http://nightscout.host:1337>
-$self - Upload entries (glucose data) to NS.
+Usage: $self <entries.json> <http://nightscout.host:1337>
+Upload entries (glucose data) to NS.
 EOF
 }
 

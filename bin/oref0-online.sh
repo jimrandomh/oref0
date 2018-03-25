@@ -1,5 +1,21 @@
 #!/bin/bash
 
+self=$(basename $0)
+function usage () {
+    cat <<EOT
+Usage: $self
+Attempt to get a working internet connection via wifi or bluetooth. Typically
+run from crontab.
+EOT
+}
+
+case "$1" in
+  --help|-h|help)
+    usage
+    exit 0
+esac
+
+
 main() {
     MACs=$@
     HostAPDIP='10.29.29.1'
