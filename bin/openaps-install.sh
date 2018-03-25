@@ -1,9 +1,10 @@
 #!/bin/bash
+
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
 set -e
 
-self=$(basename $0)
-function usage () {
-cat <<EOT
+usage "$@" <<EOT
 Usage: $self
 
 OpenAPS installer. This is downloaded and executed by openaps-bootstrap.sh (but
@@ -14,13 +15,6 @@ openaps-packages.sh from GitHub (branch "dev"), checks out oref0 from GitHub
 CGM settings.
 
 EOT
-}
-
-case "$1" in
-  --help|-h|help)
-    usage
-    exit 0
-esac
 
 read -p "Enter your rig's new hostname (this will be your rig's "name" in the future, so make sure to write it down): " -r
 myrighostname=$REPLY

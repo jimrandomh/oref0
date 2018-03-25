@@ -1,8 +1,8 @@
 #!/bin/bash
 
-self=$(basename $0)
-function usage () {
-cat <<EOT
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
+usage "$@" <<EOT
 Usage: $self -|<filename>|<target> <duration> [starttime]
 
 Set a temporary target, by formatting it as JSON and storing it in
@@ -14,12 +14,6 @@ it's the name of a file containing JSON describing a temporary target. If two
 or more arguments, they are a target, duration, and optional start time (as
 with oref0-set-local-temptarget.js).
 EOT
-}
-case "$1" in
-  --help|-h|help)
-    usage
-    exit 0
-esac
 
 
 if [[ ! -z "$2" ]]; then

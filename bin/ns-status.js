@@ -50,7 +50,8 @@ function uploaderStatus (status) {
 
 if (!module.parent) {
 
-    var argv = require('yargs')
+    var yargs = require('yargs')
+    var argv = yargs
         .usage("Usage: $0 <clock.json> <iob.json> <suggested.json> <enacted.json> <battery.json> <reservoir.json> <status.json> [--uploader uploader.json] [mmtune.json]")
         .option('uploader', {
             alias: 'u',
@@ -78,7 +79,7 @@ if (!module.parent) {
     }
 
     if (!clock_input || !iob_input || !suggested_input || !enacted_input || !battery_input || !reservoir_input || !status_input) {
-        console.log('usage: ', process.argv.slice(0, 2), '<clock.json> <iob.json> <suggested.json> <enacted.json> <battery.json> <reservoir.json> <status.json> [--uploader uploader.json] [mmtune.json]');
+        yargs.showHelp("log");
         process.exit(1);
     }
 

@@ -1,19 +1,13 @@
 #!/bin/bash
 
-self=$(basename $0)
-function usage () {
-cat <<EOT
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
+usage "$@" <<EOT
 Usage: $self
 
 Downloads OpenAPS packages using pip, and dependencies using apt-get and npm.
 This is normally invoked from openaps-install.sh.
 EOT
-}
-case "$1" in
-  --help|-h|help)
-    usage
-    exit 0
-esac
 
 # TODO: remove the `-o Acquire::ForceIPv4=true` once Debian's mirrors work reliably over IPv6
 apt-get -o Acquire::ForceIPv4=true install -y sudo

@@ -1,18 +1,11 @@
 #!/bin/bash
 
-self=$(basename $0)
-function usage ( ) {
-cat <<EOF
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
+usage "$@" <<EOF
 Usage: $self
 Monitors /var/log/openaps/network.log
 EOF
-}
-case "$1" in
-  -h|--help|help)
-    usage
-    exit 0
-    ;;
-esac
 
 
 tail -n 100 -F /var/log/openaps/network.log

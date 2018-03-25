@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
 # OREF0_DEBUG makes this script much more verbose
 # and allows it to print additional debug information.
 # OREF0_DEBUG=1 generally means to print everything that usually
@@ -27,20 +29,11 @@ else
   exec 4>/dev/null
 fi
 
-self=$(basename $0)
-usage () {
-    cat <<EOT
+usage "$@" <<EOT
 Usage: $self
 The main pump loop. Syncs with an insulin pump, enacts temporary basals and
 SMB boluses. Normally runs from crontab.
 EOT
-}
-case "$1" in
-  --help|help|-h)
-    usage
-    exit 0
-    ;;
-esac
 
 # old pump-loop
 old_main() {
@@ -158,13 +151,6 @@ function fail {
     exit 1
 }
 
-
-function overtemp {
-    # check for CPU temperature above 85°C
-    sensors -u 2>&3 | awk '$NF > 85' | grep input \
-    && echo Rig is too hot: not running pump-loop at $(date)\
-    && echo Please ensure rig is properly ventilated
-}
 
 function smb_reservoir_before {
     # Refresh reservoir.json and pumphistory.json
@@ -777,10 +763,6 @@ try_fail() {
 }
 try_return() {
     "$@" || { echo "Couldn't $*" - continuing; return 1; }
-}
-die() {
-    echo "$@"
-    exit 1
 }
 
 if grep 12 settings/model.json; then

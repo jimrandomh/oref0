@@ -25,7 +25,7 @@ var withRawGlucose = require('../lib/with-raw-glucose');
  */
 
 function usage ( ) {
-    console.error('usage: ', process.argv.slice(0, 2), '<glucose.json> <cal.json> [max_raw]');
+    console.log('usage: ', process.argv.slice(0, 2).join(" "), '<glucose.json> <cal.json> [max_raw]');
 }
 if (!module.parent) {
   var glucose_input = process.argv[2];

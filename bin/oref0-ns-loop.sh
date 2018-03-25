@@ -1,4 +1,7 @@
 #!/bin/bash
+
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
 # echo Starting ns-loop at $(date): && openaps get-ns-bg; sensors -u 2>/dev/null | awk '$NF > 85' | grep input || ( openaps ns-temptargets && echo -n Refreshed temptargets && openaps ns-meal-carbs && echo \\\" and meal-carbs\\\" && openaps upload )
 # echo Starting ns-loop at $(date): && openaps get-ns-bg; openaps ns-temptargets && echo -n Refreshed temptargets && openaps ns-meal-carbs && echo \\\" and meal-carbs\\\" && openaps battery-status; cat monitor/edison-battery.json; echo; openaps upload
 
@@ -36,25 +39,10 @@ main() {
     echo Completed oref0-ns-loop at $(date)
 }
 
-self=$(basename $0)
-function usage {
-    cat <<EOT
+usage "$@" <<EOT
 Usage: $self
 Sync data with Nightscout. Typically runs from crontabb.
 EOT
-}
-
-function overtemp {
-    # check for CPU temperature above 85°C
-    sensors -u 2>/dev/null | awk '$NF > 85' | grep input \
-    && echo Edison is too hot: waiting for it to cool down at $(date)\
-    && echo Please ensure rig is properly ventilated
-}
-
-function highload {
-    # check whether system load average is high
-    uptime | awk '$NF > 2' | grep load
-}
 
 
 #openaps get-ns-glucose && cat cgm/ns-glucose.json | json -c \\\"minAgo=(new Date()-new Date(this.dateString))/60/1000; return minAgo < 10 && minAgo > -5 && this.glucose > 38\\\" | grep -q glucose && cp -pu cgm/ns-glucose.json cgm/glucose.json; cp -pu cgm/glucose.json monitor/glucose.json
@@ -218,10 +206,5 @@ function mdt_upload_bg {
 
 
 
-
-die() {
-    echo "$@"
-    exit 1
-}
 
 main "$@"

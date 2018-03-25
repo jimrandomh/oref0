@@ -3,11 +3,11 @@
 #
 # Author: Ben West
 #
-#
 
-self=$(basename $0)
-function usage () {
-cat <<EOT
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
+
+usage "$@" <<EOT
 Usage: $self
 Sometimes openaps instances get corrupted and only produce error
 messages.
@@ -16,14 +16,6 @@ commit.  This script attempts to remove all the broken objects after the last
 known commit.
 This should allow recovering a corrupted openaps instance.
 EOT
-}
-
-case "$1" in
-  --help|help|-h)
-    usage
-    exit 0
-    ;;
-esac
 
 function is_corrupt ( ) {
   git status 2>&1 > /dev/null && return 1 || return 0

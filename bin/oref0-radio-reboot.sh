@@ -1,20 +1,12 @@
 #!/bin/bash
 
-self=$(basename $0)
-function usage ( ) {
-cat <<EOF
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
+usage "$@" <<EOF
 Usage: $self
 Check the pump-loop logfile for certain types of radio errors. If any are
 found, schedule a reboot to fix them. Otherwise cancel a pending reboot.
 EOF
-}
-
-case "$1" in
-  -h|--help|help)
-    usage
-    exit 0
-    ;;
-esac
 
 # There are 2 known conditions in which communication between rig and pump is not working and a reboot is required.
 # 1) spidev5.1 already in use, see https://github.com/openaps/oref0/pull/411 (all pumps)

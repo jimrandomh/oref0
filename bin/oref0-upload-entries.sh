@@ -1,19 +1,11 @@
 #!/bin/bash
 
-self=$(basename $0)
-function usage ( ) {
-cat <<EOF
+source $(dirname $0)/oref0-bash-common-functions.sh || (echo "ERROR: Failed to run oref0-bash-common-functions.sh. Is oref0 correctly installed?"; exit 1)
+
+usage "$@" <<EOF
 Usage: $self
 Upload data to Nightscout. Normally runs from crontab.
 EOF
-}
-
-case "$1" in
-  --help|help|-h)
-    usage
-    exit 0
-    ;;
-esac
 
 
 echo "Checking entries-last-date.json..."

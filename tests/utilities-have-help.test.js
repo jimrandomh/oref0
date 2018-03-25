@@ -5,14 +5,17 @@
 //    and the word "usage" (case-insensitive. This is to distinguish
 //    documentation from error messages or other output.)
 //  * Its combined output (stdout+stderr) must be at least three lines long
-//  * It must exit within 1 second with status 0
 //  * It must not output anything to stderr
 //
 // Some conventions for scripts which aren'enforced, but you should try to have
 // happen:
+//  * Exit with status 0
 //  * If -h or --help is given, have no side effects and exit status 0
 //  * If fewer than the required number of arguments, output usage and exit
 //    with non-zero status
+//
+// This test has the additional effect of catching syntax errors and similar
+// fail-to-run-at-all problems in scripts.
 "use strict";
 
 var dirsToSearchForUtils = [
@@ -27,14 +30,6 @@ var helpFlagsThatMustBeAccepted = [
 var minHelpLineCount = 1;
 
 var utilsToSkip = {
-    // Due to a strange interaction between how node's event loop works and
-    // shell redirection to /dev/fd/1, output is lost if mm-stick.sh is run
-    // from node (but not if it's run from a shell script or python script).
-    // Specifically, when node spawns a process, its stdout is a socket,
-    // rather than a pty, pipe or file; and this script redirects to /dev/fds/1,
-    // which can't be re-opened because it's a socket.
-    "mm-stick.sh": true,
-    
     // Currently failing to run in my not-on-an-Edison unit-testing environment
     // because of what look like path issues. (jimrandomh)
     "oref0-autotune-core.js": true,
@@ -54,10 +49,18 @@ var utilsToSkip = {
     "oref0-normalize-temps.js": true,
     "oref0-upload-profile.js": true,
     
+    // Scripts that output help text to stderr (instead of stdout) and aren't
+    // trivial to fix
+    "ns-status.js": true,
+    
     // Don't check that oref0-version's output with --help is format like
     // usage information, because its output is just the version number, and
     // that's fine.
     "oref0-version.sh": true,
+    
+    // Not actually an executable script, but a library of functions included
+    // by other shell scripts
+    "oref0-bash-common-functions.sh": true,
 }
 
 var should = require('should');
@@ -91,6 +94,7 @@ describe("Shell scripts support --help", function() {
                     invocationDescription+" does not have usage information in its output");
                 should.notEqual(combinedOutput.toLowerCase().indexOf(path.basename(util)), -1,
                     invocationDescription+" does not have its 's name in its output");
+                should.equal(utilProcess.stderr, "", "Program should not output on stderr")
                 
                 var lineCount = combinedOutput.split("\n").length;
                 lineCount.should.be.greaterThanOrEqual(minHelpLineCount, invocationDescription+": Help text is too short (should be at least "+minHelpLineCount+" lines)");
