@@ -329,7 +329,7 @@ function refresh_after_bolus_or_enact {
 function unsuspend_if_no_temp {
     # If temp basal duration is zero, unsuspend pump
     if (cat monitor/temp_basal.json | json -c "this.duration == 0" | grep -q duration); then
-        if (grep -iq '"unsuspend_if_no_temp": true' preferences.json); then
+        if check_pref_bool .unsuspend_if_no_temp; then
             echo Temp basal has ended: unsuspending pump
             timerun openaps use pump resume_pump
         else

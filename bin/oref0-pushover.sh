@@ -25,41 +25,12 @@ if [ -z $TOKEN ] || [ -z $USER ]; then
     exit 1
 fi
 
-PREF_VALUE=$(cat $PREF_FILE | jq --raw-output -r .pushover_sound 2>/dev/null)
-
-if [ ! -z $PREF_VALUE ] && [ $PREF_VALUE != "null" ]; then
-    SOUND=$PREF_VALUE
-fi
-
-PREF_VALUE=$(cat $PREF_FILE | jq .pushover_snooze 2>/dev/null)
-
-if [ ! -z $PREF_VALUE ] && [ $PREF_VALUE != "null" ] && [ "$PREF_VALUE" -eq "$PREF_VALUE" ]; then
-    SNOOZE=$PREF_VALUE
-fi
-
-PREF_VALUE=$(cat $PREF_FILE | jq --raw-output -r .pushover_only 2>/dev/null)
-
-if [ ! -z $PREF_VALUE ] && [ $PREF_VALUE != "null" ]; then
-    ONLYFOR=$PREF_VALUE
-fi
-
-PREF_VALUE=$(cat $PREF_FILE | jq .pushover_priority 2>/dev/null)
-
-if [ ! -z $PREF_VALUE ] && [ $PREF_VALUE != "null" ] && [ "$PREF_VALUE" -eq "$PREF_VALUE" ]; then
-    PRIORITY=$PREF_VALUE
-fi
-
-PREF_VALUE=$(cat $PREF_FILE | jq .pushover_retry 2>/dev/null)
-
-if [ ! -z $PREF_VALUE ] && [ $PREF_VALUE != "null" ] && [ "$PREF_VALUE" -eq "$PREF_VALUE" ]; then
-    RETRY=$PREF_VALUE
-fi
-
-PREF_VALUE=$(cat $PREF_FILE | jq .pushover_expire 2>/dev/null)
-
-if [ ! -z $PREF_VALUE ] && [ $PREF_VALUE != "null" ] && [ "$PREF_VALUE" -eq "$PREF_VALUE" ]; then
-    EXPIRE=$PREF_VALUE
-fi
+SOUND="$(get_pref_string .pushover_sound "$SOUND")"
+SNOOZE="$(get_pref_float .pushover_snooze "$SNOOZE")"
+ONLYFOR="$(get_pref_string .pushover_only "$ONLYFOR")"
+PRIORITY="$(get_pref_float .pushover_priority "$PRIORITY")"
+RETRY="$(get_pref_float .pushover_retry "$RETRY")"
+EXPIRE="$(get_pref_float .pushover_expire "$EXPIRE")"
 
 if [ "$SOUND" = "default" ]; then
     SOUND_OPTION=""
@@ -116,9 +87,8 @@ cob=`jq .COB $FILE`
 iob=`jq .IOB $FILE`
 
 #echo "carbsReq=${carbsReq} tick=${tick} bgNow=${bgNow} delta=${delta} cob=${cob} iob=${iob}"
-pushoverGlances=$(cat preferences.json | jq -M '.pushoverGlances')
 
-if [ "${pushoverGlances}" == "null" -o "${pushoverGlances}" == "false" ]; then
+if ! check_pref_bool .pushoverGlances; then
     echo "pushoverGlances not enabled in preferences.json"
 else
   GLANCES="monitor/last_glance"
