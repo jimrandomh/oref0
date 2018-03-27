@@ -42,7 +42,7 @@ def expandProfile(l, valueField, offsetField):
         minutes1=calc_minutes(start1)
         offset1=l[i][offsetField]
         if minutes1!=offset1:
-            print "Error in JSON offSetField %s contains %s does not match start time %s (%d minutes). Please report this as a bug" % (offsetField, offset1, start1, minutes1) 
+            print("Error in JSON offSetField %s contains %s does not match start time %s (%d minutes). Please report this as a bug" % (offsetField, offset1, start1, minutes1))
             sys.exit(1)
         while (minutes<minutes1):
             r.append(value)
@@ -161,18 +161,18 @@ if __name__ == '__main__':
     try:
         import xlsxwriter
     except:
-        print "This software requires XlsxWriter package. Install it with 'sudo pip install XlsxWriter', see http://xlsxwriter.readthedocs.io/"
+        print("This software requires XlsxWriter package. Install it with 'sudo pip install XlsxWriter', see http://xlsxwriter.readthedocs.io/")
         sys.exit(1)
 
 
-    print "Writing headers to Microsoft Excel file %s" % args.output
+    print("Writing headers to Microsoft Excel file %s" % args.output)
     workbook = xlsxwriter.Workbook(args.output)
     (worksheetProfile,worksheetBasal, worksheetIsf,excel_2decimals_format,excel_integer_format)=excel_init_workbook(workbook)
     row=1 # start on second row, row=0 is for headers
     filenamelist=sortedFilenames()
     for filename in filenamelist:
         f=open(filename, 'r')
-        print "Adding %s to Excel" % filename
+        print("Adding %s to Excel" % filename)
         j=json.load(f)
         try:
             basalProfile=j['basalprofile']
@@ -185,9 +185,9 @@ if __name__ == '__main__':
             row=row+1
         except Exception as e:
             if j.has_key('error'):
-               print "Skipping file. Error: %s " % j['error']
+               print("Skipping file. Error: %s " % j['error'])
             else:
-               print "Skipping file. Exception: %s" % e
+               print("Skipping file. Exception: %s" % e)
                 
     workbook.close()  
-    print "Written %d lines to Excel" % row
+    print("Written %d lines to Excel" % row)

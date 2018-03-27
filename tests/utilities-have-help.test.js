@@ -61,6 +61,8 @@ var utilsToSkip = {
     // Not actually an executable script, but a library of functions included
     // by other shell scripts
     "oref0-bash-common-functions.sh": true,
+    
+    "__pycache__": true,
 }
 
 var should = require('should');
