@@ -35,7 +35,7 @@ function checkFile(filename, type)
     {
     case "sh":
         var script = child_process.spawnSync("bash", ["-n", filename], {
-            timeout: 1000, //milliseconds
+            timeout: 4000, //milliseconds
             encoding: "UTF-8",
         });
         
@@ -44,7 +44,7 @@ function checkFile(filename, type)
         
     case "js":
         var js = child_process.spawnSync("node", ["--check", filename], {
-            timeout: 1000, //milliseconds
+            timeout: 4000, //milliseconds
             encoding: "UTF-8",
         });
         
@@ -56,7 +56,7 @@ function checkFile(filename, type)
         var compiledName = pythonCompiledNameOf(filename);
         
         var py = child_process.spawnSync("python3", ["-m", "py_compile", filename], {
-            timeout: 1000, //milliseconds
+            timeout: 4000, //milliseconds
             encoding: "UTF-8",
         });
         

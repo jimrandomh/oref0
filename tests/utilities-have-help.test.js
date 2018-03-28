@@ -85,7 +85,7 @@ describe("Shell scripts support --help", function() {
                 if(path.basename(util) in utilsToSkip)
                     return;
                 var utilProcess = child_process.spawnSync(util, [helpFlag], {
-                    timeout: 1000, //milliseconds
+                    timeout: 4000, //milliseconds
                     encoding: "UTF-8",
                     stdio: ["pipe","pipe","pipe"]
                 });
