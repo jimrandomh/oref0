@@ -73,6 +73,7 @@
     "oref0-raw": "./bin/oref0-raw.js",
     "oref0-reset-git": "bin/oref0-reset-git.sh",
     "oref0-reset-usb": "bin/oref0-reset-usb.sh",
+    "oref0-send-notification": "./bin/oref0-send-notification.sh",
     "oref0-set-device-clocks": "./bin/oref0-set-device-clocks.sh",
     "oref0-set-system-clock": "./bin/oref0-set-system-clock.sh",
     "oref0-set-local-temptarget": "./bin/oref0-set-local-temptarget.js",

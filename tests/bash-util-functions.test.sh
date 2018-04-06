@@ -75,6 +75,31 @@ EOT
     if [ "$(get_pref_string .missing stringDefault)" != "stringDefault" ]; then
         fail_test "Wrong result for check_pref_float on a missing value with default"
     fi
+    
+    # Test mutating a (non-empty) config file to add a new setting
+    set_pref .mutated_pref 123
+    if [ "$(get_pref_float .mutated_pref)" != 123 ]; then
+        fail_test "set_pref didn't set a pref correctly"
+    fi
+    
+    # Test mutating a config file to change an existing setting
+    set_pref .mutated_pref 567
+    if [ "$(get_pref_float .mutated_pref)" != 567 ]; then
+        fail_test "set_pref didn't mutate a pref correctly"
+    fi
+    
+    # Test mutating an (empty) config file
+    rm -f preferences.json
+    set_pref .empty_mutated_pref 123
+    if [ "$(get_pref_float .empty_mutated_pref)" != 123 ]; then
+        fail_test "set_pref didn't set a pref correctly when config file was empty"
+    fi
+    
+    # Test mutating a config file, adding a quoted string
+    set_pref .mutated_pref '"Hello"'
+    if [ "$(get_pref_string .mutated_pref)" != "Hello" ]; then
+        fail_test "set_pref didn't set a string pref correctly"
+    fi
 )
 
 rm -f bash-unit-test-temp/preferences.json

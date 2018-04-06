@@ -149,3 +149,16 @@ get_pref_string () {
     fi
 }
 
+# Usage: set_pref <preference-name> <new-value>
+set_pref () {
+    if [[ -f "$PREFERENCES_FILE" ]]; then
+        local OLD_PREFS="$(cat "$PREFERENCES_FILE")"
+        local NEW_PREFS="$(echo "$OLD_PREFS" |jq "$1 |= $2")"
+    else
+        local NEW_PREFS="$(echo '{}' |jq "$1 |= $2")"
+    fi
+    
+    # Write the whole file and move into place, so that the change is atomic
+    echo "$NEW_PREFS" >"${PREFERENCES_FILE}.new"
+    mv "${PREFERENCES_FILE}.new" "$PREFERENCES_FILE"
+}
