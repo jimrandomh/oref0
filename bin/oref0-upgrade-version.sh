@@ -12,18 +12,39 @@ EOF
 
 assert_pwd_is_myopenaps
 
-# Pushover token
-# In oref0 versions 0.6.1 and earlier, if Pushover alerts are enabled, the
-# Pushover username and API token are given as command-line arguments to
-# oref0-pushover.sh by cron, and stored only in crontab.
-# In newer versions, if pushover is enabled, the username and API token are
-# instead stored in preferences.json.
-if crontab -l |grep oref0-pushover >/dev/null; then
-    if [[ $(get_pref_string .PUSHOVER_TOKEN missing) == missing ]]; then
-        PUSHOVER_TOKEN="$(crontab -l |grep oref0-pushover |sed -e 's/.*oref0-pushover \([a-z0-9]*\).*/\1/')"
-        PUSHOVER_USER="$(crontab -l |grep oref0-pushover |sed -e 's/.*oref0-pushover [a-z0-9]* \([a-z0-9]*\).*/\1/')"
-        
-        set_pref .PUSHOVER_TOKEN "\"${PUSHOVER_TOKEN}\""
-        set_pref .PUSHOVER_USER "\"${PUSHOVER_USER}\""
-    fi
-fi
+# Usage: remove_from_crontab <regex>
+# If the crontab contains a line where any part of the line matches the given
+# regular expression, remove that line.
+function remove_from_crontab () {
+    (crontab -l |grep -v "$1") |crontab -
+}
+
+# Crontab cleanup
+# In oref0 versions 0.6.1 and earlier, there were many cronjobs, which are now
+# consolidated into oref0-cron-post-reboot, oref0-cron-every-minute,
+# oref0-cron-every-15min, and oref0-cron-nightly.
+function remove_0.6.1_jobs_from_crontab () {
+    remove_from_crontab "sudo wpa_cli scan"
+    remove_from_crontab "killall -g --older-than 30m openaps"
+    remove_from_crontab "killall -g --older-than 5m openaps"
+    remove_from_crontab "openaps monitor-cgm"
+    remove_from_crontab "monitor-xdrip"
+    remove_from_crontab ".xDripAPS/xDripAPS.py"
+    remove_from_crontab "oref0-dexusb-cgm-loop"
+    remove_from_crontab "openaps get-bg"
+    remove_from_crontab "openaps ns-loop"
+    remove_from_crontab "oref0-ns-loop"
+    remove_from_crontab "oref0-autosens-loop"
+    remove_from_crontab "oref0-autotune"
+    remove_from_crontab "reset_spi_serial.py"
+    remove_from_crontab "oref0-radio-reboot"
+    remove_from_crontab "peb-urchin-status"
+    remove_from_crontab "oref0-bluetoothup"
+    remove_from_crontab "EdisonVoltage"
+    remove_from_crontab "oref0-delete-future-entries"
+    remove_from_crontab "oref0-pushover"
+    remove_from_crontab "oref0-version"
+    remove_from_crontab "flask run"
+}
+
+remove_0.6.1_jobs_from_crontab

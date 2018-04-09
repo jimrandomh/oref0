@@ -1054,11 +1054,26 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         add_to_crontab "PATH=" "PATH=$PATH"
         
         add_to_crontab \
-            "oref0-online $BT_MAC" \
+            "oref0-cron-every-minute" \
             '* * * * *' \
-            'ps aux | grep -v grep | grep -q "oref0-online '$BT_MAC'" || cd '$directory' && oref0-online '$BT_MAC' 2>&1 >> /var/log/openaps/network.log'
+            "cd $directory && oref0-cron-every-minute"
+        add_to_crontab \
+            "oref0-cron-post-reboot" \
+            '@reboot' \
+            "cd $directory && oref0-cron-post-reboot"
+        add_to_crontab \
+            "oref0-nightly" \
+            "5 4 * * *" \
+            "cd $directory && oref0-cron-nightly"
+        add_to_crontab \
+            "oref0-cron-every-15min" \
+            "*/15 * * * *" \
+            "cd $directory && oref0-cron-every-15min"
         
         # temporarily disable hotspot for 1m every hour to allow it to try to connect via wifi again
+        # FIXME: This comment says every hour, but these cron lines say every
+        # 20 minutes. Make some sort of policy decision about which it should
+        # be.
         add_to_crontab \
             "touch /tmp/disable_hotspot" \
             "0,20,40 * * * *" \
@@ -1068,126 +1083,6 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
             '1,21,41 * * * *' \
             'rm /tmp/disable_hotspot'
         
-        add_to_crontab \
-            "sudo wpa_cli scan" \
-            '* * * * *' \
-            'sudo wpa_cli scan'
-        add_to_crontab \
-            "killall -g --older-than 30m oref0" \
-            '* * * * *' \
-            '( killall -g --older-than 30m openaps; killall -g --older-than 30m oref0-pump-loop; killall -g --older-than 30m openaps-report )'
-        
-        # kill pump-loop after 5 minutes of not writing to pump-loop.log
-        add_to_crontab \
-            "killall -g --older-than 5m oref0" \
-            '* * * * *' \
-            'find /var/log/openaps/pump-loop.log -mmin +5 | grep pump && ( killall -g --older-than 5m openaps; killall -g --older-than 5m oref0-pump-loop; killall -g --older-than 5m openaps-report )'
-        
-        if [[ ${CGM,,} =~ "g5-upload" ]]; then
-            add_to_crontab \
-                "oref0-upload-entries" \
-                "* * * * *" \
-                "cd $directory && oref0-upload-entries"
-        fi
-        if [[ ${CGM,,} =~ "shareble" || ${CGM,,} =~ "g4-upload" ]]; then
-            add_to_crontab \
-                "cd $directory-cgm-loop && ps aux | grep -v grep | grep -q 'openaps monitor-cgm'" \
-                "* * * * *" \
-                "cd $directory-cgm-loop && ps aux | grep -v grep | grep -q 'openaps monitor-cgm' || ( date; openaps monitor-cgm) | tee -a /var/log/openaps/cgm-loop.log; cp -up monitor/glucose-raw-merge.json $directory/cgm/glucose.json ; cp -up $directory/cgm/glucose.json $directory/monitor/glucose.json"
-        elif [[ ${CGM,,} =~ "xdrip" ]]; then
-            add_to_crontab \
-                "cd $directory && ps aux | grep -v grep | grep -q 'monitor-xdrip'" \
-                "* * * * *" \
-                "cd $directory && ps aux | grep -v grep | grep -q 'monitor-xdrip' || monitor-xdrip | tee -a /var/log/openaps/xdrip-loop.log"
-            add_to_crontab \
-                "xDripAPS.py" \
-                "@reboot" \
-                "python $HOME/.xDripAPS/xDripAPS.py"
-        elif [[ $ENABLE =~ dexusb ]]; then
-            add_to_crontab \
-                "@reboot .*dexusb-cgm" \
-                "@reboot" \
-                "cd $directory && /usr/bin/python -u /usr/local/bin/oref0-dexusb-cgm-loop >> /var/log/openaps/cgm-dexusb-loop.log 2>&1"
-        elif ! [[ ${CGM,,} =~ "mdt" ]]; then # use nightscout for cgm
-            add_to_crontab \
-                "cd $directory && ps aux | grep -v grep | grep -q 'openaps get-bg'" \
-                "* * * * *" \
-                "cd $directory && ps aux | grep -v grep | grep -q 'openaps get-bg' || ( date; openaps get-bg ; cat cgm/glucose.json | jq -r  '.[] | \"\\(.sgv) \\(.dateString)\"' | head -1 ) | tee -a /var/log/openaps/cgm-loop.log"
-        fi
-        if [[ ${CGM,,} =~ "xdrip" ]]; then # use old ns-loop for now
-            add_to_crontab \
-                "cd $directory && ps aux | grep -v grep | grep -q 'openaps ns-loop'" \
-                "* * * * *" \
-                "cd $directory && ps aux | grep -v grep | grep -q 'openaps ns-loop' || openaps ns-loop | tee -a /var/log/openaps/ns-loop.log"
-        else
-            add_to_crontab \
-                "cd $directory && ps aux | grep -v grep | grep -q 'oref0-ns-loop'" \
-                "* * * * *" \
-                "cd $directory && ps aux | grep -v grep | grep -q 'oref0-ns-loop' || oref0-ns-loop | tee -a /var/log/openaps/ns-loop.log"
-        fi
-        
-        add_to_crontab \
-            "cd $directory && ps aux | grep -v grep | grep -q 'oref0-autosens-loop' || oref0-autosens-loop 2>&1" \
-            "* * * * *" \
-            "cd $directory && ps aux | grep -v grep | grep -q 'oref0-autosens-loop' || oref0-autosens-loop 2>&1 | tee -a /var/log/openaps/autosens-loop.log"
-        
-        if [[ $ENABLE =~ autotune ]]; then
-            # autotune nightly at 4:05am using data from NS
-            add_to_crontab \
-                "oref0-autotune -d=$directory -n=$NIGHTSCOUT_HOST" \
-                "5 4 * * *" \
-                "( oref0-autotune -d=$directory -n=$NIGHTSCOUT_HOST && cat $directory/autotune/profile.json | jq . | grep -q start && cp $directory/autotune/profile.json $directory/settings/autotune.json) 2>&1 | tee -a /var/log/openaps/autotune.log"
-        fi
-        if [[ "$ttyport" =~ "spi" ]]; then
-            add_to_crontab \
-                "reset_spi_serial.py" \
-                "@reboot" \
-                "reset_spi_serial.py"
-            add_to_crontab "oref0-radio-reboot" "* * * * * oref0-radio-reboot"
-        fi
-        add_to_crontab \
-            "cd $directory && ( ps aux | grep -v grep | grep bash | grep -q 'bin/oref0-pump-loop'" \
-            "* * * * *" \
-            "cd $directory && ( ps aux | grep -v grep | grep bash | grep -q 'bin/oref0-pump-loop' || oref0-pump-loop ) 2>&1 | tee -a /var/log/openaps/pump-loop.log"
-        if [[ ! -z "$BT_PEB" ]]; then
-            add_to_crontab \
-                "cd $directory && ( ps aux | grep -v grep | grep -q 'peb-urchin-status $BT_PEB '" \
-                "* * * * *" \
-                "cd $directory && ( ps aux | grep -v grep | grep -q 'peb-urchin-status $BT_PEB' || peb-urchin-status $BT_PEB ) 2>&1 | tee -a /var/log/openaps/urchin-loop.log"
-        fi
-        if [[ ! -z "$BT_PEB" || ! -z "$BT_MAC" ]]; then
-            add_to_crontab \
-                "oref0-bluetoothup" \
-                '* * * * *' \
-                'ps aux | grep -v grep | grep -q "oref0-bluetoothup" || oref0-bluetoothup >> /var/log/openaps/network.log'
-        fi
-        #if [[ "$ttyport" =~ "spidev5.1" ]]; then
-           # proper shutdown once the EdisonVoltage very low (< 3050mV; 2950 is dead)
-        if egrep -i "edison" /etc/passwd 2>/dev/null; then
-           add_to_crontab \
-               "cd $directory && sudo ~/src/EdisonVoltage/voltage" \
-               "*/15 * * * *" \
-               "cd $directory && sudo ~/src/EdisonVoltage/voltage json batteryVoltage battery | jq .batteryVoltage | awk '{if (\$1<=3050)system(\"sudo shutdown -h now\")}'"
-           #fi
-        fi
-        add_to_crontab \
-            "cd $directory && oref0-delete-future-entries" \
-            "@reboot" \
-            "cd $directory && oref0-delete-future-entries"
-        if [[ ! -z "$PUSHOVER_TOKEN" && ! -z "$PUSHOVER_USER" ]]; then
-            add_to_crontab \
-                "oref0-pushover" \
-                "* * * * *" \
-                "cd $directory && oref0-pushover $PUSHOVER_TOKEN $PUSHOVER_USER 2>&1 >> /var/log/openaps/pushover.log"
-        fi
-        add_to_crontab \
-            "cd $directory && oref0-version --check-for-updates" \
-            "0 * * * *" \
-            "cd $directory && oref0-version --check-for-updates > /tmp/oref0-updates.txt"
-        add_to_crontab \
-            "flask run" \
-            "@reboot" \
-            'cd ~/src/oref0/www && export FLASK_APP=app.py && flask run -p 80 --host=0.0.0.0" | tee -a /var/log/openaps/flask.log'
         crontab -l | tee $HOME/crontab.txt
     fi
 
@@ -1210,6 +1105,20 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo To edit your settings.json to set maxBasal or DIA, run: nano $directory/settings/settings.json
         echo To edit your bg_targets_raw.json to set targets, run: nano $directory/settings/bg_targets_raw.json
     fi
+    
+    # Save information to preferences.json
+    set_pref_string .nightscout_host "$NIGHTSCOUT_HOST"
+    set_pref_string .nightscout_api_secret "$API_SECRET"
+    set_pref_string .cgm "${CGM,,}"
+    set_pref_string .bt_peb "$BT_PEB"
+    set_pref_string .bt_mac "$BT_MAC"
+    set_pref_string .enable "$ENABLE"
+    set_pref_string .ttyport "$ttyport"
+    set_pref_string .pushover_token "$PUSHOVER_TOKEN"
+    set_pref_string .pushover_user "$PUSHOVER_USER"
+    set_pref_string .myopenaps_path "$directory"
+    set_pref_string .cgm_loop_path "$directory-cgm-loop"
+    set_pref_string .xdrip_path "$HOME/.xDripAPS"
 
 fi # from 'read -p "Continue? y/[N] " -r' after interactive setup is complete
 
