@@ -99,9 +99,10 @@ check_pref_bool () {
 # Check myopenaps/preferences.json for a setting matching preference-name which
 # is a float. If it's present and is a number, output it. If it's not present,
 # output default-value. If it's present but is not a number, output an error to
-# stderr and output default-value. If the preferences file doesn't exit,
-# outputs default-value. If the default is omitted, it's 0. In any case, exit
-# status is 0 if a non-default value for the preference was found, 1 otherwise.
+# stderr and output default-value. If the preferences file doesn't exist,
+# outputs default-value. If no value could be found and no default is provided,
+# exits with status 1 and writes a message to stderr; otherwise exits with
+# status 0.
 get_pref_float () {
     if [[ -f "$PREFERENCES_FILE" ]]; then
         local PREFS="$(cat "$PREFERENCES_FILE")"
@@ -109,10 +110,12 @@ get_pref_float () {
         if [[ "$RESULT" == "null" ]]; then
             if [[ "$2" != "" ]]; then
                 echo "$2"
+                return 0
             else
                 echo 0
+                echo "Undefined preference setting and no default provided for $1" 1>&2
+                return 1
             fi
-            return 1
         else
             echo "$RESULT"
             return 0
@@ -120,8 +123,11 @@ get_pref_float () {
     else
         if [[ "$2" != "" ]]; then
             echo "$2"
+            return 0
         else
             echo 0
+            echo "No preferences file and no default provided for $1" 1>&2
+            return 1
         fi
     fi
 }

@@ -120,8 +120,8 @@ for i in "$@"; do
   esac
 done
 
-PUSHOVER_TOKEN="$(get_pref_string .PUSHOVER_TOKEN)"
-PUSHOVER_USER="$(get_pref_string .PUSHOVER_USER)"
+PUSHOVER_TOKEN="$(get_pref_string .pushover_token)"
+PUSHOVER_USER="$(get_pref_string .pushover_user)"
 
 # If message is omitted, read from stdin
 if [[ "$MESSAGE" == "-" ]]; then

@@ -12,11 +12,13 @@ assert_pwd_is_myopenaps
 
 #if [[ "$ttyport" =~ "spidev5.1" ]]; then
 if egrep -i "edison" /etc/passwd 2>/dev/null; then
-   # proper shutdown once the EdisonVoltage very low (< 3050mV; 2950 is dead)
-    cd $directory
-    sudo ~/src/EdisonVoltage/voltage json batteryVoltage battery \
-        | jq .batteryVoltage \
-        | awk '{if (\$1<=3050)system(\"sudo shutdown -h now\")}'
+    # proper shutdown once the EdisonVoltage very low (< 3050mV; 2950 is dead)
+    (
+        cd $directory
+        sudo ~/src/EdisonVoltage/voltage json batteryVoltage battery \
+            | jq .batteryVoltage \
+            | awk '{if ($1<=3050)system("sudo shutdown -h now")}'
+    )
 fi
 
 # Get remaining free space (in kb). Whichever partition the log files are on
@@ -29,16 +31,18 @@ DISK_CRITICAL_THRESHOLD="$(get_pref_float .disk_critical_threshold 2000)"
 
 if ((FREE_SPACE < DISK_CRITICAL_THRESHOLD)); then
     oref0-send-notification \
-        --title "Low disk space on $(hostname)" \
-        --config-prefix disk_warn \
-        --priority 1 \
-        --cooldown 60 \
-        --cooldown-token disk_critical
+        --title="Low disk space on $(hostname)" \
+        --message="${FREE_SPACE}kb remaining." \
+        --config-prefix=disk_warn \
+        --priority=1 \
+        --cooldown=60 \
+        --cooldown-token=disk_critical
 elif ((FREE_SPACE < DISK_WARN_THRESHOLD)); then
     oref0-send-notification \
-        --title "Critically low disk space on $(hostname)" \
-        --config-prefix disk_critical \
-        --priority 0 \
-        --cooldown 720 \
-        --coldown-token disk_warn
+        --title="Critically low disk space on $(hostname)" \
+        --message="${FREE_SPACE}kb remaining." \
+        --config-prefix=disk_critical \
+        --priority=0 \
+        --cooldown=720 \
+        --coldown-token=disk_warn
 fi
