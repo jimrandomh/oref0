@@ -37,15 +37,15 @@ fi
 
 sudo wpa_cli scan &
 
-killall -g --older-than 30m openaps;
-killall -g --older-than 30m oref0-pump-loop;
-killall -g --older-than 30m openaps-report
+killall --quiet --process-group --older-than 30m openaps;
+killall --quiet --process-group --older-than 30m oref0-pump-loop;
+killall --quiet --process-group --older-than 30m openaps-report
 
 # kill pump-loop after 5 minutes of not writing to pump-loop.log
 find /var/log/openaps/pump-loop.log -mmin +5 | grep pump && (
-    killall -g --older-than 5m openaps;
-    killall -g --older-than 5m oref0-pump-loop;
-    killall -g --older-than 5m openaps-report
+    killall --quiet --process-group --older-than 5m openaps;
+    killall --quiet --process-group --older-than 5m oref0-pump-loop;
+    killall --quiet --process-group --older-than 5m openaps-report
 )
 
 if [[ ${CGM,,} =~ "g5-upload" ]]; then

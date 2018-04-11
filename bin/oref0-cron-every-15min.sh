@@ -11,14 +11,11 @@ EOT
 assert_pwd_is_myopenaps
 
 #if [[ "$ttyport" =~ "spidev5.1" ]]; then
-if egrep -i "edison" /etc/passwd 2>/dev/null; then
+if is_edison; then
     # proper shutdown once the EdisonVoltage very low (< 3050mV; 2950 is dead)
-    (
-        cd $directory
-        sudo ~/src/EdisonVoltage/voltage json batteryVoltage battery \
-            | jq .batteryVoltage \
-            | awk '{if ($1<=3050)system("sudo shutdown -h now")}'
-    )
+    sudo ~/src/EdisonVoltage/voltage json batteryVoltage battery \
+        | jq .batteryVoltage \
+        | awk '{if ($1<=3050)system("sudo shutdown -h now")}'
 fi
 
 # Get remaining free space (in kb). Whichever partition the log files are on

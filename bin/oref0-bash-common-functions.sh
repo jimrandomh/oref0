@@ -177,3 +177,14 @@ set_pref_json () {
 set_pref_string () {
     set_pref_json "$1" "\"$2\""
 }
+
+# Returns success (0) if running on an Intel Edison, fail (1) otherwise. Uses
+# the existence of an "edison" account in /etc/passwd to determine that.
+is_edison () {
+    #if egrep -i "edison" /etc/passwd 2>/dev/null; then
+    if getent passwd edison; then
+        return 0
+    else
+        return 1
+    fi
+}

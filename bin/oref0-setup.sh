@@ -224,7 +224,7 @@ if [[ -z "$DIR" || -z "$serial" ]]; then
             echocolor " it is. "
             echo
         else
-            if  getent passwd edison > /dev/null; then
+            if is_edison; then
                 echocolor "Yay! Configuring for Edison with Explorer Board. "
                 ttyport=/dev/spidev5.1
             else
@@ -915,28 +915,26 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     sudo sysctl -p
 
     # Install EdisonVoltage
-    #if [[ "$ttyport" =~ "spidev5.1" ]]; then
-        if egrep -i "edison" /etc/passwd 2>/dev/null; then
-            echo "Checking if EdisonVoltage is already installed"
-            if [ -d "$HOME/src/EdisonVoltage/" ]; then
-                echo "EdisonVoltage already installed"
-            else
-                echo "Installing EdisonVoltage"
-                cd $HOME/src && git clone -b master git://github.com/cjo20/EdisonVoltage.git || (cd EdisonVoltage && git checkout master && git pull)
-                cd $HOME/src/EdisonVoltage
-                make voltage
-            fi
-            # Add module needed for EdisonVoltage to work on jubilinux 0.2.0
-            grep iio_basincove_gpadc /etc/modules-load.d/modules.conf || echo iio_basincove_gpadc >> /etc/modules-load.d/modules.conf
+    if is_edison; then
+        echo "Checking if EdisonVoltage is already installed"
+        if [ -d "$HOME/src/EdisonVoltage/" ]; then
+            echo "EdisonVoltage already installed"
+        else
+            echo "Installing EdisonVoltage"
+            cd $HOME/src && git clone -b master git://github.com/cjo20/EdisonVoltage.git || (cd EdisonVoltage && git checkout master && git pull)
+            cd $HOME/src/EdisonVoltage
+            make voltage
         fi
-        if [[ ${CGM,,} =~ "mdt" ]] || [[ ${CGM,,} =~ "xdrip" ]]; then # still need this for the old ns-loop for now
-            cd $directory || die "Can't cd $directory"
-            for type in edisonbattery; do
-                echo importing $type file
-                cat $HOME/src/oref0/lib/oref0-setup/$type.json | openaps import || die "Could not import $type.json"
-            done
-        fi
-    #fi
+        # Add module needed for EdisonVoltage to work on jubilinux 0.2.0
+        grep iio_basincove_gpadc /etc/modules-load.d/modules.conf || echo iio_basincove_gpadc >> /etc/modules-load.d/modules.conf
+    fi
+    if [[ ${CGM,,} =~ "mdt" ]] || [[ ${CGM,,} =~ "xdrip" ]]; then # still need this for the old ns-loop for now
+        cd $directory || die "Can't cd $directory"
+        for type in edisonbattery; do
+            echo importing $type file
+            cat $HOME/src/oref0/lib/oref0-setup/$type.json | openaps import || die "Could not import $type.json"
+        done
+    fi
     # Install Pancreabble
     echo Checking for BT Pebble Mac
     if [[ ! -z "$BT_PEB" ]]; then
