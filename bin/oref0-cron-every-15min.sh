@@ -30,7 +30,7 @@ if ((FREE_SPACE < DISK_CRITICAL_THRESHOLD)); then
     oref0-send-notification \
         --title="Low disk space on $(hostname)" \
         --message="${FREE_SPACE}kb remaining." \
-        --config-prefix=disk_warn \
+        --config-prefix=disk_critical \
         --priority=1 \
         --cooldown=60 \
         --cooldown-token=disk_critical
@@ -38,7 +38,7 @@ elif ((FREE_SPACE < DISK_WARN_THRESHOLD)); then
     oref0-send-notification \
         --title="Critically low disk space on $(hostname)" \
         --message="${FREE_SPACE}kb remaining." \
-        --config-prefix=disk_critical \
+        --config-prefix=disk_warn \
         --priority=0 \
         --cooldown=720 \
         --coldown-token=disk_warn
