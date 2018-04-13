@@ -66,12 +66,53 @@ assert_pwd_is_myopenaps () {
     fi
 }
 
+# Usage: get_pref_bool <preference-name> <default-value>
+# Check myopenaps/preferences.json for a setting matching preference-name which
+# is a bool. If it's present and is a bool, output it. If it's not present,
+# output default-value. If it's present but is not a bool, output an error to
+# stderr and output default-value. If the preferences file doesn't exist,
+# outputs default-value. If no value could be found and no default is provided,
+# exits with status 1 and writes a message to stderr; otherwise exits with
+# status 0.
+get_pref_bool () {
+    if [[ -f "$PREFERENCES_FILE" ]]; then
+        local PREFS="$(cat "$PREFERENCES_FILE")"
+        RESULT=$(echo $PREFS |jq "$1")
+        if [[ "$RESULT" == "null" ]]; then
+            if [[ "$2" != "" ]]; then
+                # TODO: Actually enforce this being a bool
+                echo "$2"
+                return 0
+            else
+                echo false
+                echo "Undefined preference setting and no default provided for $1" 1>&2
+                return 1
+            fi
+        else
+            echo "$RESULT"
+            return 0
+        fi
+    else
+        if [[ "$2" != "" ]]; then
+            echo "$2"
+            return 0
+        else
+            echo false
+            echo "No preferences file and no default provided for $1" 1>&2
+            return 1
+        fi
+    fi
+}
+
 # Usage: check_pref_bool <preference-name> <default-value>
 # Check myopenaps/preferences.json for a setting matching preference-name. If
 # present, return 0 (success) if it is truthy, or 1 (fail) if it is falsy. If
 # not present, return 0 (success) if default-value is the string "true", or
 # 1 (failure) if default-value is the string "false" or is omitted. If the
-# preferences file doesn't exit, outputs default-value.
+# preferences file doesn't exist, outputs default-value.
+#
+# This differs from get_pref_bool in that it expresses the result as an exit
+# status, rather than a string output.
 check_pref_bool () {
     if [[ -f "$PREFERENCES_FILE" ]]; then
         local PREFS="$(cat "$PREFERENCES_FILE")"
@@ -109,6 +150,7 @@ get_pref_float () {
         RESULT=$(echo $PREFS |jq "$1")
         if [[ "$RESULT" == "null" ]]; then
             if [[ "$2" != "" ]]; then
+                # TODO: Actually enforce this being a number
                 echo "$2"
                 return 0
             else

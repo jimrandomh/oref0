@@ -87,6 +87,7 @@ COOLDOWN=30
 COOLDOWN_TOKEN=""
 RETRY=60
 EXPIRE=600
+ENABLED=true
 
 for i in "$@"; do
   case "$i" in
@@ -117,6 +118,13 @@ for i in "$@"; do
     --expire=*)
       EXPIRE="${i#*=}"
       ;;
+    --disable-by-default)
+      ENABLED=false
+      ;;
+    *)
+      echo "Unrecognized option: $i"
+      exit 1
+      ;;
   esac
 done
 
@@ -137,6 +145,12 @@ if [[ "$CONFIG_PREFIX" != "" ]]; then
     COOLDOWN="$(get_pref_float .${CONFIG_PREFIX}_COOLDOWN "$COOLDOWN")"
     RETRY="$(get_pref_float .${CONFIG_PREFIX}_RETRY "$RETRY")"
     EXPIRE="$(get_pref_float .${CONFIG_PREFIX}_EXPIRE "$EXPIRE")"
+    ENABLED="$(get_pref_bool .${CONFIG_PREFIX}_ENABLED "$ENABLED")"
+fi
+
+if [[ "$ENABLED" == false ]]; then
+    echo "Skipping notification because it is disabled by default"
+    exit 0
 fi
 
 # If no cooldown token is given, but a config prefix is, the config prefix is
