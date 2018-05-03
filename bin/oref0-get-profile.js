@@ -156,13 +156,11 @@ if (!module.parent) {
         var msg = { error: e, msg: "Could not parse autotune_data", file: autotune_input};
         console.error(msg.msg);
         // Continue and output a non-autotuned profile if we don't have autotune_data
-        //console.log(JSON.stringify(msg));
         //process.exit(1);
       }
     }
 
     var carbratio_data = { };
-    //console.log("carbratio_input",carbratio_input);
     if (typeof carbratio_input != 'undefined') {
         try {
             carbratio_data = JSON.parse(fs.readFileSync(carbratio_input, 'utf8'));
@@ -200,7 +198,6 @@ if (!module.parent) {
         }
     }
 
-    //console.log(carbratio_data);
     var inputs = { };
 
     //add all preferences to the inputs

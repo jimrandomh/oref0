@@ -124,7 +124,6 @@ if (!module.parent) {
     if (typeof meal_input != 'undefined') {
         try {
             meal_data = JSON.parse(fs.readFileSync(meal_input, 'utf8'));
-            //console.error(JSON.stringify(meal_data));
             if (typeof meal_data.mealCOB != 'undefined') {
                 mealCOB = meal_data.mealCOB;
             }

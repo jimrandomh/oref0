@@ -105,24 +105,16 @@ if (!module.parent) {
     //attempting to provide a check for autotune
     //if autotune directory does not exist, SMB/oref1 should not be able to run
 
-    // console.error("Printing this so you know it's getting to the check for autotune.")
-
-    //printing microbolus before attempting check
-    //console.error("Microbolus var is currently set to: ",params['microbolus']);
-
     if (params['microbolus']) {
         if (fs.existsSync("autotune")) {
             console.error("Autotune exists! Hoorah! You can use microbolus-related features.")
         } else {
             console.error("Warning: Autotune has not been run. All microboluses will be disabled until you manually run autotune or add it to run nightly in your loop.");
             params['microbolus'] = false;
-            //console.error("Microbolus var is currently set to: ",params['microbolus']);
         }
     }
 
-    //console.log(carbratio_data);
     var meal_data = { };
-    //console.error("meal_input",meal_input);
     if (meal_input && typeof meal_input != 'undefined') {
         try {
             meal_data = JSON.parse(fs.readFileSync(meal_input, 'utf8'));
@@ -134,7 +126,6 @@ if (!module.parent) {
             , error: e
             };
             console.error(msg.msg);
-            // console.log(JSON.stringify(msg));
             if (!params['missing-meal-ok']) {
               warnings.push(msg);
             }
@@ -143,7 +134,6 @@ if (!module.parent) {
     }
     //if (meal_input) { meal_data = require(cwd + '/' + meal_input); }
 
-    //console.error(autosens_input);
     var autosens_data = null;
     if (autosens_input) {
       // { "ratio":1 };
@@ -151,7 +141,6 @@ if (!module.parent) {
       if (autosens_input !== true && autosens_input.length) {
         try {
             autosens_data = JSON.parse(fs.readFileSync(autosens_input, 'utf8'));
-            //console.error(JSON.stringify(autosens_data));
         } catch (e) {
             var msg = {
               msg: "Optional feature Auto Sensitivity enabled.  Could not find specified auto-sens: " + autosens_input
@@ -159,7 +148,6 @@ if (!module.parent) {
             };
             console.error(msg.msg);
             console.error(e);
-            // console.log(JSON.stringify(msg));
             if (!params['missing-auto-sens-ok']) {
               errors.push(msg);
             }
@@ -171,7 +159,6 @@ if (!module.parent) {
     if (reservoir_input && typeof reservoir_input != 'undefined') {
         try {
             reservoir_data = fs.readFileSync(reservoir_input, 'utf8');
-            //console.error(reservoir_data);
         } catch (e) {
             var msg = {
               msg: "Warning: Could not read required reservoir data from "+reservoir_input+"."
@@ -198,8 +185,6 @@ if (!module.parent) {
     }
 
     console.error(JSON.stringify(glucose_status));
-    //console.error(JSON.stringify(currenttemp));
-    //console.error(JSON.stringify(profile));
 
     var tempBasalFunctions = require('oref0/lib/basal-set-temp');
 

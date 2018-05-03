@@ -44,7 +44,6 @@ if (!module.parent) {
         var profile = require(cwd + '/' + profile_input);
 
         if (typeof(profile.isfProfile == "undefined")) {
-            //console.error(profile[0].store.Default.basal);
             profile =
             {
                 "min_5m_carbimpact": 8,
@@ -67,7 +66,6 @@ if (!module.parent) {
                 "autosens_max": 2.0,
                 "autosens_min": 0.5
             };
-          //console.error(profile);
         }
         var isf_data = profile.isfProfile;
         if (typeof(isf_data) != "undefined" && typeof(isf_data.units == "string")) {

@@ -50,7 +50,6 @@ if (!module.parent) {
     try {
         var autosens_data = require(cwd + '/' + autosens_input);
     } catch (e) {}
-    //console.error(autosens_input, JSON.stringify(autosens_data));
   }
   var pumphistory_24_data = null;
   if (pumphistory_24_input) {
