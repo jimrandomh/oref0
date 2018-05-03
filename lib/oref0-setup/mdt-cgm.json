@@ -45,8 +45,8 @@
     "type": "report",
     "name": "monitor/cgm-mm-glucosetrend.json",
     "monitor/cgm-mm-glucosetrend.json": {
-      "device": "oref0",
-      "remainder": "mdt-trend monitor/cgm-mm-glucosedirty.json",
+      "device": "oref0-mdt-trend",
+      "remainder": "monitor/cgm-mm-glucosedirty.json",
       "use": "shell",
       "json_default": "True",
       "reporter": "JSON"

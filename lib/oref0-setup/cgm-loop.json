@@ -38,8 +38,8 @@
     "name": "raw",
     "extra": {
       "fields": "glucose cal maxraw",
-      "cmd": "oref0",
-      "args": "raw"
+      "cmd": "oref0-raw",
+      "args": ""
     }
   },
   {

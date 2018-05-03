@@ -37,8 +37,8 @@
   {
     "extra": {
       "fields": "pumphistory profile clock",
-      "cmd": "oref0",
-      "args": "calculate-iob"
+      "cmd": "oref0-calculate-iob",
+      "args": ""
     },
     "type": "device",
     "name": "iob",
@@ -50,8 +50,8 @@
   {
     "extra": {
       "fields": "pumphistory profile clock glucose basal carbs",
-      "cmd": "oref0",
-      "args": "meal"
+      "cmd": "oref0-meal",
+      "args": ""
     },
     "type": "device",
     "name": "meal",
@@ -63,8 +63,8 @@
   {
     "extra": {
       "fields": "settings bg_targets isf basal_profile preferences carb_ratios",
-      "cmd": "oref0",
-      "args": "get-profile"
+      "cmd": "oref0-get-profile",
+      "args": ""
     },
     "type": "device",
     "name": "get-profile",
@@ -76,8 +76,8 @@
   {
     "extra": {
       "fields": "glucose pumphistory isf basal_profile profile",
-      "cmd": "oref0",
-      "args": "detect-sensitivity"
+      "cmd": "oref0-detect-sensitivity",
+      "args": ""
     },
     "type": "device",
     "name": "detect-sensitivity",
@@ -95,8 +95,8 @@
     "name": "determine-basal",
     "extra": {
       "fields": "iob temp_basal glucose profile",
-      "cmd": "oref0",
-      "args": "determine-basal"
+      "cmd": "oref0-determine-basal",
+      "args": ""
     }
   },
   {
@@ -108,8 +108,8 @@
     "name": "pebble",
     "extra": {
       "fields": "glucose iob basal_profile temp_basal suggested enacted meal",
-      "cmd": "oref0",
-      "args": "pebble"
+      "cmd": "oref0-pebble",
+      "args": ""
     }
   },
   {
