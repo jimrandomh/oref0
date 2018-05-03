@@ -186,9 +186,7 @@ if (!module.parent) {
 
     console.error(JSON.stringify(glucose_status));
 
-    var tempBasalFunctions = require('oref0/lib/basal-set-temp');
-
-    rT = determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, tempBasalFunctions, params['microbolus'], reservoir_data);
+    rT = determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, params['microbolus'], reservoir_data);
 
     if(typeof rT.error === 'undefined') {
         console.log(JSON.stringify(rT));
