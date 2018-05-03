@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+var _ = require('lodash');
 
 function findRecord(arr, tell, date) {
 	for (var i = 0; i < arr.length; ++i)
@@ -30,7 +31,7 @@ if (!module.parent) {
 
   var cwd = process.cwd();
   var glucose_data = require(cwd + '/' + glucose_input);
-  glucose_data.sort(function (a, b) { return Date.parse(a.date) - Date.parse(b.date) });
+  glucose_data = _.sortBy(glucose_data, g => Date.parse(g.date));
 
   filtered = glucose_data.filter(function(x) { return x.name == "GlucoseSensorData" });
 
