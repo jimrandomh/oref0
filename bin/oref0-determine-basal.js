@@ -186,12 +186,10 @@ if (!module.parent) {
 
     console.error(JSON.stringify(glucose_status));
 
-    rT = determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, params['microbolus'], reservoir_data);
-
-    if(typeof rT.error === 'undefined') {
-        console.log(JSON.stringify(rT));
-    } else {
-        console.error(rT.error);
+    try {
+        var result = determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, params['microbolus'], reservoir_data);
+        console.log(JSON.stringify(result));
+    } catch(e) {
+        console.error(e.message);
     }
-
 }

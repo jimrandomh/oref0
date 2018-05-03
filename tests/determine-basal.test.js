@@ -456,8 +456,12 @@ describe('determine-basal', function ( ) {
     //});
 
     it('should profile.current_basal be undefined return error', function () {
-      var result = determine_basal(undefined,undefined,undefined,undefined);
-      result.error.should.equal('Error: could not get current basal rate');
+      try {
+        var result = determine_basal(undefined,undefined,undefined,undefined);
+        should.fail("profile.current_basal undefined args should throw");
+      } catch(e) {
+        e.message.should.equal('Error: could not get current basal rate');
+      }
     });
 
     it('should let low-temp run when bg < 30 (Dexcom is in ???)', function () {
@@ -477,13 +481,21 @@ describe('determine-basal', function ( ) {
     });
 
     it('profile should contain min_bg,max_bg', function () {
-      var result = determine_basal({glucose:100},undefined, undefined, {"current_basal":0.0}, undefined, meal_data);
-      result.error.should.equal('Error: could not determine target_bg. ');
+      try {
+        var result = determine_basal({glucose:100},undefined, undefined, {"current_basal":0.0}, undefined, meal_data);
+        should.fail("should throw when min_bg,max_bg missing");
+      } catch(e) {
+        e.message.should.equal('Error: could not determine target_bg.');
+      }
     });
 
     it('iob_data should not be undefined', function () {
-      var result = determine_basal({glucose:100},undefined, undefined, {"current_basal":0.0, "max_bg":100,"min_bg":1100}, undefined, meal_data);
-      result.error.should.equal('Error: iob_data undefined. ');
+      try {
+        var result = determine_basal({glucose:100},undefined, undefined, {"current_basal":0.0, "max_bg":100,"min_bg":1100}, undefined, meal_data);
+        should.fail("should throw when iob_data undefined");
+      } catch(e) {
+        e.message.should.equal('Error: iob_data undefined.');
+      }
     });
 
     //it('iob_data should contain activity, iob, bolussnooze', function () {
@@ -515,7 +527,7 @@ describe('determine-basal', function ( ) {
         var iob_data = {"iob":3.983,"activity":0.0255,"bolussnooze":2.58,"basaliob":0.384,"netbasalinsulin":0.3,"hightempinsulin":0.7};
         var meal_data = {"carbs":65,"boluses":4, "mealCOB":65};
         var currenttemp = {"duration":29,"rate":1.3,"temp":"absolute"};
-        var profile = {"max_iob":3,"type":"current","dia":3,"current_basal":1.3,"max_daily_basal":1.3,"max_basal":3.5,"min_bg":105,"max_bg ":105,"sens":40,"carb_ratio":10}
+        var profile = {"max_iob":3,"type":"current","dia":3,"current_basal":1.3,"max_daily_basal":1.3,"max_basal":3.5,"min_bg":105,"max_bg":105,"sens":40,"carb_ratio":10}
         var output = determine_basal(glucose_status, currenttemp, iob_data, profile, undefined, meal_data);
         //console.log(output);
         (typeof output.rate).should.equal('undefined');
