@@ -667,6 +667,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     set_pref_string .myopenaps_path "$directory"
     set_pref_string .cgm_loop_path "$directory-cgm-loop"
     set_pref_string .xdrip_path "$HOME/.xDripAPS"
+    set_pref_string .serial "$serial"
+    set_pref_string .radio_locale "$radio_local"
     
     cat preferences.json
 
