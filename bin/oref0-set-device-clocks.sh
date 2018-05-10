@@ -32,7 +32,12 @@ Set pump and CGM clocks based on NTP time if available.
 EOF
 
 
-checkNTP() { ntp-wait -n 1 -v || ( sudo /etc/init.d/ntp restart && ntp-wait -n 1 -v ) }
+checkNTP() {
+    if ! ntp-wait -n 1 -v; then
+        sudo /etc/init.d/ntp restart \
+        && ntp-wait -n 1 -v
+    fi
+}
 
 if checkNTP; then
     sudo ntpdate -s -b time.nist.gov

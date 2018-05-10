@@ -14,7 +14,7 @@ main() {
     else
         if glucose_fresh; then
             echo Glucose file is fresh
-            cat cgm/ns-glucose.json | colorize_json '.[0] | { glucose: .glucose, dateString: .dateString }'
+            echo "$(cat cgm/ns-glucose.json | colorize_json '.[0] | { glucose: .glucose, dateString: .dateString }')"
         else
             get_ns_bg
         fi
@@ -69,7 +69,7 @@ function get_ns_bg {
         cp -pu cgm/ns-glucose.json cgm/glucose.json
     else
         echo No recent valid BG found. Most recent:
-        cat cgm/ns-glucose.json | colorize_json '.[0] | { glucose: .glucose, dateString: .dateString }'
+        echo "$(cat cgm/ns-glucose.json | colorize_json '.[0] | { glucose: .glucose, dateString: .dateString }')"
     fi
 
     # copy cgm/glucose.json over to monitor/glucose.json if it's newer
@@ -94,18 +94,20 @@ function find_valid_ns_glucose {
 function ns_temptargets {
     #openaps report invoke settings/temptargets.json settings/profile.json >/dev/null
     nightscout ns $NIGHTSCOUT_HOST $API_SECRET temp_targets > settings/ns-temptargets.json.new
-    cat settings/ns-temptargets.json.new | jq .[0].duration | egrep -q [0-9] && mv settings/ns-temptargets.json.new settings/ns-temptargets.json
+    if cat settings/ns-temptargets.json.new | jq .[0].duration | egrep -q [0-9]; then
+        mv settings/ns-temptargets.json.new settings/ns-temptargets.json
+    fi
     # TODO: merge local-temptargets.json with ns-temptargets.json
     #openaps report invoke settings/ns-temptargets.json settings/profile.json
     echo -n "Latest NS temptargets: "
-    cat settings/ns-temptargets.json | colorize_json '.[0] | { target: .targetBottom, duration: .duration, start: .created_at }'
+    echo "$(cat settings/ns-temptargets.json | colorize_json '.[0] | { target: .targetBottom, duration: .duration, start: .created_at }')"
     # delete any local-temptarget files last modified more than 24h ago
     find settings/local-temptarget* -mmin +1440 -exec rm {} \;
     echo -n "Merging local temptargets: "
-    cat settings/local-temptargets.json | colorize_json '.[0] | { target: .targetBottom, duration: .duration, start: .created_at }'
+    echo "$(cat settings/local-temptargets.json | colorize_json '.[0] | { target: .targetBottom, duration: .duration, start: .created_at }')"
     jq -s '.[0] + .[1]|unique|sort_by(.created_at)|reverse' settings/ns-temptargets.json settings/local-temptargets.json > settings/temptargets.json
     echo -n "Temptargets merged: "
-    cat settings/temptargets.json | colorize_json '.[0] | { target: .targetBottom, duration: .duration, start: .created_at }'
+    echo "$(cat settings/temptargets.json | colorize_json '.[0] | { target: .targetBottom, duration: .duration, start: .created_at }')"
     oref0-get-profile settings/settings.json settings/bg_targets.json settings/insulin_sensitivities.json settings/basal_profile.json preferences.json settings/carb_ratios.json settings/temptargets.json --model=settings/model.json --autotune settings/autotune.json | jq . > settings/profile.json.new || die "Couldn't refresh profile"
     if cat settings/profile.json.new | jq . | grep -q basal; then
         mv settings/profile.json.new settings/profile.json
@@ -118,11 +120,14 @@ function ns_temptargets {
 function ns_meal_carbs {
     #openaps report invoke monitor/carbhistory.json >/dev/null
     nightscout ns $NIGHTSCOUT_HOST $API_SECRET carb_history > monitor/carbhistory.json.new
-    cat monitor/carbhistory.json.new | jq .[0].carbs | egrep -q [0-9] && mv monitor/carbhistory.json.new monitor/carbhistory.json
+    if cat monitor/carbhistory.json.new | jq .[0].carbs | egrep -q [0-9]; then
+        mv monitor/carbhistory.json.new monitor/carbhistory.json
+    fi
     oref0-meal monitor/pumphistory-24h-zoned.json settings/profile.json monitor/clock-zoned.json monitor/glucose.json settings/basal_profile.json monitor/carbhistory.json > monitor/meal.json.new
-    grep -q COB monitor/meal.json.new && mv monitor/meal.json.new monitor/meal.json
-    echo -n "Refreshed carbhistory; COB: "
-    grep COB monitor/meal.json | jq .mealCOB
+    if grep -q COB monitor/meal.json.new; then
+        mv monitor/meal.json.new monitor/meal.json
+    fi
+    echo -n "Refreshed carbhistory; COB: $(grep COB monitor/meal.json | jq .mealCOB)"
 }
 
 #sudo ~/src/EdisonVoltage/voltage json batteryVoltage battery > monitor/edison-battery.json
@@ -150,7 +155,9 @@ function upload_ns_status {
         return 1
     fi
     format_ns_status && grep -q iob upload/ns-status.json || die "Couldn't generate ns-status.json"
-    ns-upload $NIGHTSCOUT_HOST $API_SECRET devicestatus.json upload/ns-status.json | colorize_json '.[0].openaps.suggested | {BG: .bg, IOB: .IOB, rate: .rate, duration: .duration, units: .units}' || die "Couldn't upload devicestatus to NS"
+    ns-upload $NIGHTSCOUT_HOST $API_SECRET devicestatus.json upload/ns-status.json \
+        | colorize_json '.[0].openaps.suggested | {BG: .bg, IOB: .IOB, rate: .rate, duration: .duration, units: .units}' \
+        || die "Couldn't upload devicestatus to NS"
 }
 
 #ns-status monitor/clock-zoned.json monitor/iob.json enact/suggested.json enact/enacted.json monitor/battery.json monitor/reservoir.json monitor/status.json > upload/ns-status.json
@@ -190,7 +197,7 @@ function format_latest_nightscout_treatments {
         jq .[0:9] monitor/pumphistory-24h-zoned.json > upload/recent-pumphistory.json
         historyfile=upload/recent-pumphistory.json
     fi
-        nightscout cull-latest-openaps-treatments $historyfile settings/model.json $latest_ns_treatment_time > upload/latest-treatments.json
+    nightscout cull-latest-openaps-treatments $historyfile settings/model.json $latest_ns_treatment_time > upload/latest-treatments.json
 }
 
 function check_mdt_upload {

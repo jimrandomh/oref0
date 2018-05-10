@@ -60,9 +60,13 @@ function add-carbs ( ) {
 }
 
 function basal-rates ( ) {
-  (
-   test -n "$1" && cat $1 || echo "[ ]"
-  ) | json  \
+  local input="[]"
+  if [[ -n "$1" ]]; then
+    input="$(cat "$1")"
+  fi
+  
+  echo "$input" \
+    | json  \
     | fix-schedule rate \
     | json -A -e "this.length > 0 ? this : [ ];"
     # | json -e "this.seconds = this.minutes * 60;"
@@ -73,9 +77,12 @@ function add-basals ( ) {
 }
 
 function sensitivities ( ) {
-  (
-   test -n "$1" && cat $1 || echo "{ }" | json
-  )   \
+  local input="{}"
+  if [[ -n "$1" ]]; then
+    input="$(cat "$1")"
+  fi
+  
+  echo "$input" \
     | json -e "this.sens = (this.sensitivities && this.sensitivities.length > 0) ? this.sensitivities : [ ];" \
     | json  sens  \
     | fix-schedule sensitivity
@@ -89,12 +96,17 @@ function add-isf ( ) {
 
 function targets ( ) {
   category="$2"
-  test -z "$category" && category=$1 && shift 
-  (
-   test -n "${1}${2}" && cat $1 || echo "{ }" | json
-  )   \
-    | target-category $category
-
+  
+  if [[ -z "$category" ]]; then
+      catergory="$1"
+      shift
+  fi
+  
+  if [[ -n "${1}${2}" ]]; then
+      cat "$1" |target-category "$category"
+  else
+      echo "{}" |json |target-category "$category"
+  fi
 }
 
 function target-category ( ) {

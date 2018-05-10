@@ -20,7 +20,9 @@ function flatten ( ) {
 function find_dupes_on ( ) {
   count=$1
   date=$2
-  test $count -gt 1  && curl --compressed -g -s ${ENDPOINT}.json"?count=$(($count-1))&find[created_at]=$date"
+  if [[ $count -gt 1  ]]; then
+    curl --compressed -g -s ${ENDPOINT}.json"?count=$(($count-1))&find[created_at]=$date"
+  fi
 }
 function debug_cmd ( ) {
 tid=$1
@@ -36,15 +38,21 @@ curl -X DELETE -H "API-SECRET: $API_SECRET" ${ENDPOINT}/$tid
 
 function list ( ) {
 NIGHTSCOUT_HOST=$1
-  test -z "$NIGHTSCOUT_HOST" && echo NIGHTSCOUT_HOST undefined. && print_usage && exit 1
+  if [[ -z "$NIGHTSCOUT_HOST" ]]; then
+    echo NIGHTSCOUT_HOST undefined.
+    print_usage
+    exit 1
+  fi
 ENDPOINT=${NIGHTSCOUT_HOST}/api/v1/treatments
 
 export NIGHTSCOUT_HOST ENDPOINT
 fetch | flatten | while read count date; do
-  test $count -gt 1 && echo "{}" \
-    | json -e "this.count = $count" \
-    -e "this.date = '$date'" \
-    -e "this.created_at = '$date'"
+  if [[ $count -gt 1 ]]; then
+    echo "{}" \
+      | json -e "this.count = $count" \
+      -e "this.date = '$date'" \
+      -e "this.created_at = '$date'"
+  fi
 done | json -g
 }
 
@@ -54,8 +62,12 @@ ACTION=${2-debug_cmd}
 ENDPOINT=${NIGHTSCOUT_HOST}/api/v1/treatments
 
 if [[ -z "$NIGHTSCOUT_HOST" || -z "$NIGHTSCOUT_HOST" ]] ; then
-  test -z "$NIGHTSCOUT_HOST" && echo NIGHTSCOUT_HOST undefined.
-  test -z "$API_SECRET" && echo API_SECRET undefined.
+  if [[ -z "$NIGHTSCOUT_HOST" ]]; then
+    echo NIGHTSCOUT_HOST undefined.
+  fi
+  if [[ -z "$API_SECRET" ]]; then
+    echo API_SECRET undefined.
+  fi
   print_usage
   exit 1;
 fi
@@ -74,7 +86,9 @@ done
 }
 
 export API_SECRET
-test -n "$3" && API_SECRET=$3
+if [[ -n "$3" ]]; then
+  API_SECRET=$3
+fi
 case "$1" in
   --list)
     list $2

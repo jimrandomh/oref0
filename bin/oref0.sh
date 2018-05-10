@@ -62,7 +62,9 @@ export-loop)
   exit
   ;;
 *)
-  test -n "$COMMAND" && exec $COMMAND $*
+  if [[ -n "$COMMAND" ]]; then
+    exec $COMMAND $*
+  fi
   ;;
 esac
 

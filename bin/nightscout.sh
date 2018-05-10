@@ -227,21 +227,41 @@ ns)
       TYPE=${2-'entries'}
       FILE=${3-''}
       # nightscout ns $NIGHTSCOUT_HOST $API_SECRET
-      test -z ${ZONE} && echo "Missing first argument, ZONE, usually is set to tz" && exit 1
-      test -z ${TYPE} && echo "Missing second argument, TYPE, one of: entries, treatments, devicestatus, profiles." && exit 1
-      test ! -e ${FILE} && echo "Third argument, contents to upload, FILE, does not exist" && exit 1
-      test ! -r ${FILE} && echo "Third argument, contents to upload, FILE, not readable." && exit 1
+      if [[ -z ${ZONE} ]]; then
+          echo "Missing first argument, ZONE, usually is set to tz"
+          exit 1
+      fi
+      if [[ -z ${TYPE} ]]; then
+          echo "Missing second argument, TYPE, one of: entries, treatments, devicestatus, profiles."
+          exit 1
+      fi
+      if [[ ! -e ${FILE} ]]; then
+          echo "Third argument, contents to upload, FILE, does not exist"
+          exit 1
+      fi
+      if [[ ! -r ${FILE} ]]; then
+          echo "Third argument, contents to upload, FILE, not readable."
+          exit 1
+      fi
       openaps use ns shell lsgaps ${ZONE} ${TYPE} \
         |  openaps use ${ZONE} select --date dateString --current now --gaps - ${FILE}  | json
     ;;
     latest-entries-time)
       PREVIOUS_TIME=$(ns-get host $NIGHTSCOUT_HOST entries.json 'find[type]=sgv'  | json 0)
-      test -z "${PREVIOUS_TIME}" && echo -n 0 || echo $PREVIOUS_TIME | json -j dateString
+      if [[ -z "${PREVIOUS_TIME}" ]]; then
+          echo -n 0
+      else
+          echo $PREVIOUS_TIME | json -j dateString
+      fi
       exit 0
     ;;
     latest-treatment-time)
       PREVIOUS_TIME=$(ns-get host $NIGHTSCOUT_HOST treatments.json'?find[enteredBy]=/openaps:\/\//&count=1'  | json 0)
-      test -z "${PREVIOUS_TIME}" && echo -n 0 || echo $PREVIOUS_TIME | json -j created_at
+      if [[ -z "${PREVIOUS_TIME}" ]]; then
+          echo -n 0
+      else
+          echo $PREVIOUS_TIME | json -j created_at
+      fi
       exit 0
     # exec ns-get host $NIGHTSCOUT_HOST $*
     ;;
@@ -256,11 +276,19 @@ ns)
     upload-non-empty-type)
       TYPE=${1-entries.json}
       FILE=$2
-      test $(cat $FILE | json -a | wc -l) -lt 1 && echo "Nothing to upload." >&2 && cat $FILE && exit 0
+      if [[ $(cat $FILE | json -a | wc -l) -lt 1 ]]; then
+          echo "Nothing to upload." >&2
+          cat $FILE
+          exit 0
+      fi
       exec ns-upload $NIGHTSCOUT_HOST $API_SECRET $TYPE $FILE
     ;;
     upload-non-empty-treatments)
-      test $(cat $1 | json -a | wc -l) -lt 1 && echo "Nothing to upload." >&2 && cat $1 && exit 0
+      if [[ $(cat $1 | json -a | wc -l) -lt 1 ]]; then
+          echo "Nothing to upload." >&2
+          cat $1
+          exit 0
+      fi
     exec ns-upload $NIGHTSCOUT_HOST $API_SECRET treatments.json $1
 
     ;;
@@ -331,8 +359,14 @@ autoconfigure-device-crud)
       ;;
   esac
   # openaps device add ns-get host
-  test -z "$NIGHTSCOUT_HOST" && setup_help && exit 1;
-  test -z "$API_SECRET" && setup_help && exit 1;
+  if [[ -z "$NIGHTSCOUT_HOST" ]]; then
+      setup_help
+      exit 1
+  fi
+  if [[ -z "$API_SECRET" ]]; then
+      setup_help
+      exit 1
+  fi
   openaps device add ns process --require "oper" nightscout ns "NIGHTSCOUT_HOST" "API_SECRET"
   openaps device show ns --json | json \
     -e "this.extra.args = this.extra.args.replace(' NIGHTSCOUT_HOST ', ' $NIGHTSCOUT_HOST ')" \
@@ -350,6 +384,8 @@ help|--help|-h)
   exit 0
   ;;
 *)
-  test -n "$COMMAND" && exec $COMMAND $*
+  if [[ -n "$COMMAND" ]]; then
+    exec "$COMMAND" "$@"
+  fi
   ;;
 esac

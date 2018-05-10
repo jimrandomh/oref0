@@ -11,8 +11,12 @@ OUTPUT=${4-/dev/fd/1}
 
 CURL_FLAGS="--compressed -g -s"
 NIGHTSCOUT_FORMAT=${NIGHTSCOUT_FORMAT-jq .}
-test "$NIGHTSCOUT_DEBUG" = "1" && CURL_FLAGS="${CURL_FLAGS} -iv"
-test "$NIGHTSCOUT_DEBUG" = "1" && set -x
+if [[ "$NIGHTSCOUT_DEBUG" = "1" ]]; then
+    CURL_FLAGS="${CURL_FLAGS} -iv"
+fi
+if [[ "$NIGHTSCOUT_DEBUG" = "1" ]]; then
+    set -x
+fi
 
 usage "$@" <<EOF
 Usage: $self <entries.json> [NIGHTSCOUT_HOST|localhost:1337] [QUERY] [stdout|-]
@@ -53,7 +57,10 @@ case $1 in
     else
       REPORT_ENDPOINT=$NIGHTSCOUT_HOST/api/v1/${REPORT}'?'${QUERY}
     fi
-    test -z "$NIGHTSCOUT_HOST" && print_usage && exit 1;
+    if [[ -z "$NIGHTSCOUT_HOST" ]]; then
+      print_usage
+      exit 1
+    fi
 
     curl -m 30 ${CURL_AUTH} ${CURL_FLAGS} $REPORT_ENDPOINT | $NIGHTSCOUT_FORMAT
 
@@ -66,7 +73,10 @@ case $1 in
     print_usage
     ;;
   *)
-    test -z "$NIGHTSCOUT_HOST" && print_usage && exit 1;
+    if [[ -z "$NIGHTSCOUT_HOST" ]]; then
+      print_usage
+      exit 1
+    fi
     curl -m 30 ${CURL_AUTH} ${CURL_FLAGS} $REPORT_ENDPOINT | $NIGHTSCOUT_FORMAT
     ;;
 esac

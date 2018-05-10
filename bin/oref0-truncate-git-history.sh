@@ -23,7 +23,9 @@ Usage: $self
 Check if git commit history is longer than 5000 commits, and re-initialize .git if so.
 EOF
 
-test ! -d $BACKUP_AREA && BACKUP_AREA=/tmp
+if [[ ! -d $BACKUP_AREA ]]; then
+    BACKUP_AREA=/tmp
+fi
 BACKUP="$BACKUP_AREA/git-$(epochtime_now)"
 
 # remove old lockfile if still present

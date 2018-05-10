@@ -550,7 +550,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     # TODO: delete this after openaps 0.2.1 release
     echo Checking openaps 0.2.1 installation with --nogit support
     if ! openaps --version 2>&1 | egrep "0.[2-9].[1-9]"; then
-        echo Installing latest openaps w/ nogit && sudo pip install git+https://github.com/openaps/openaps.git@nogit || die "Couldn't install openaps w/ nogit"
+        echo "Installing latest openaps w/ nogit"
+        sudo pip install git+https://github.com/openaps/openaps.git@nogit || die "Couldn't install openaps w/ nogit"
     fi
 
     echo -n "Checking $directory: "

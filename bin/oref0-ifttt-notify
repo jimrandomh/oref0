@@ -78,7 +78,9 @@ esac
 # check carelink is working - if not send notification
 # maybe switch:
 
-mm-stick diagnose > /dev/null || curl -X POST $IFTTT_TRIGGER
+if ! mm-stick diagnose > /dev/null; then
+    curl -X POST $IFTTT_TRIGGER
+fi
 # python -m decocare.stick $(python -m decocare.scan) >/dev/null || curl -X POST $IFTTT_TRIGGER
 echo "Carelink Stick OK"
 

@@ -31,7 +31,12 @@ If NTP is unavailable, set system time to match pump time if it's later
 EOF
 
 
-checkNTP() { ntp-wait -n 1 -v || ( sudo /etc/init.d/ntp restart && ntp-wait -n 1 -v ) }
+checkNTP() {
+    if ! ntp-wait -n 1 -v; then
+        sudo /etc/init.d/ntp restart \
+        && ntp-wait -n 1 -v
+    fi
+}
 
 if ! checkNTP; then
 # set system time to pump time if pump time is newer than the system time (by printing out the current epoch, and the epoch generated from the $CLOCK file, and using the most recent)

@@ -21,7 +21,9 @@ EOF
 export ENTRIES API_SECRET NIGHTSCOUT_HOST REST_ENDPOINT
 if [[ -z $API_SECRET ]] ; then
   echo "$self: missing API_SECRET"
-  test -z "$NIGHTSCOUT_HOST" && echo "$self: also missing NIGHTSCOUT_HOST"
+  if [[ -z "$NIGHTSCOUT_HOST" ]]; then
+    echo "$self: also missing NIGHTSCOUT_HOST"
+  fi
   print_usage > /dev/fd/2
   exit 1;
 fi
@@ -35,18 +37,37 @@ if [[ "$ENTRIES" != "-" ]] ; then
 fi
 
 # use token authentication if the user has a token set in their API_SECRET environment variable
+if [[ "$ENTRIES" != "-" ]]; then
+    ENTRIES_INPUT="$(cat $ENTRIES)"
+else
+    ENTRIES_INPUT="$(cat)"
+fi
+
 if [[ "${API_SECRET,,}" =~ "token=" ]]; then
-  REST_ENDPOINT="${REST_ENDPOINT}?${API_SECRET}"
-    (test "$ENTRIES" != "-" && cat $ENTRIES || cat )| (
-    curl -m 30 -s -X POST --data-binary @- \
+    REST_ENDPOINT="${REST_ENDPOINT}?${API_SECRET}"
+    if echo "$ENTRIES_INPUT" \
+        | curl -m 30 -s -X POST --data-binary @- \
         -H "content-type: application/json" \
         $REST_ENDPOINT
-    ) && ( test -n "$OUTPUT" && touch $OUTPUT ; logger "Uploaded $ENTRIES to $NIGHTSCOUT_HOST" ) || ( logger "Unable to upload to $NIGHTSCOUT_HOST"; exit 2 )
+    then
+        if [[ -n "$OUTPUT" ]]; then
+            touch $OUTPUT
+        fi
+        logger "Uploaded $ENTRIES to $NIGHTSCOUT_HOST"
+    else
+        logger "Unable to upload to $NIGHTSCOUT_HOST"
+    fi
 else
-    (test "$ENTRIES" != "-" && cat $ENTRIES || cat )| (
-    curl -m 30 -s -X POST --data-binary @- \
+    if echo "$ENTRIES_INPUT" | curl -m 30 -s -X POST --data-binary @- \
         -H "API-SECRET: $API_SECRET" \
         -H "content-type: application/json" \
         $REST_ENDPOINT
-    ) && ( test -n "$OUTPUT" && touch $OUTPUT ; logger "Uploaded $ENTRIES to $NIGHTSCOUT_HOST" ) || ( logger "Unable to upload to $NIGHTSCOUT_HOST"; exit 2 )
+    then
+        if [[ -n "$OUTPUT" ]]; then
+            touch $OUTPUT
+        fi
+        logger "Uploaded $ENTRIES to $NIGHTSCOUT_HOST"
+    else
+        logger "Unable to upload to $NIGHTSCOUT_HOST"
+    fi
 fi

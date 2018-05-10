@@ -160,7 +160,11 @@ else
     cp -up settings/pumpprofile.json settings/profile.json || die "Cannot copy settings/pumpprofile.json"
 fi
 # If a previous valid settings/autotune.json exists, use that; otherwise start from settings/profile.json
-cp settings/autotune.json autotune/profile.json && cat autotune/profile.json | jq . | grep -q start || cp autotune/profile.pump.json autotune/profile.json
+if cp settings/autotune.json autotune/profile.json; then
+    cat autotune/profile.json | jq . | grep -q start
+else
+    cp autotune/profile.pump.json autotune/profile.json
+fi
 cd autotune
 
 # Turn on stderr logging, if enabled (default to true)

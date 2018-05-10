@@ -13,7 +13,10 @@ Format Medtronic glucose data into something acceptable to Nightscout.
 EOT
 
 NSONLY=""
-test "$1" = "--oref0" && NSONLY="this.glucose = this.sgv" && shift
+if [[ "$1" = "--oref0" ]]; then
+    NSONLY="this.glucose = this.sgv"
+    shift
+fi
 
 HISTORY=${1-glucosehistory.json}
 OUTPUT=${2-/dev/fd/1}
