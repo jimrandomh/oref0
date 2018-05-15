@@ -260,7 +260,7 @@ function smb_verify_enacted {
     rm -rf monitor/temp_basal.json
     (
         echo -n Temp refresh \
-        && ( check_tempbasal || check_tempbasal ) 2>&3 >&4 \
+        && try_twice check_tempbasal 2>&3 >&4 \
         && echo -n "ed: " \
     ) \
     && echo -n "monitor/temp_basal.json: $(cat monitor/temp_basal.json | colorize_json)" \
@@ -271,7 +271,7 @@ function smb_verify_reservoir {
     # Read the pump reservoir volume and verify it is within 0.1U of the expected volume
     rm -rf monitor/reservoir.json
     echo -n "Checking reservoir: " \
-    && ( check_reservoir || check_reservoir ) 2>&3 >&4 \
+    && try_twice check_reservoir 2>&3 >&4 \
     && echo -n "reservoir level before: " \
     && echo "$(cat monitor/lastreservoir.json | nonl)" \
     && echo -n ", suggested: " \
@@ -311,7 +311,7 @@ function smb_verify_status {
     # Read the pump status and verify it is not bolusing
     rm -rf monitor/status.json
     echo -n "Checking pump status (suspended/bolusing): "
-    ( check_status || check_status ) 2>&3 >&4 \
+    try_twice check_status 2>&3 >&4 \
     && echo "$(cat monitor/status.json | colorize_json)" \
     && grep -q '"status": "normal"' monitor/status.json \
     && grep -q '"bolusing": false' monitor/status.json \
@@ -494,7 +494,7 @@ function mdt_get_bg {
 function preflight {
     echo -n "Preflight "
     # only 515, 522, 523, 715, 722, 723, 554, and 754 pump models have been tested with SMB
-    ( check_model || check_model ) 2>&3 >&4 \
+    try_twice check_model 2>&3 >&4 \
     && (
         egrep -q "[57](15|22|23|54)" settings/model.json \
         || (
@@ -998,6 +998,9 @@ function read_carb_ratios() {
   && cat settings/carb_ratios.json | jq .units
 }
 
+function try_twice() {
+    "$@" || "$@"
+}
 retry_fail() {
     if ! "$@"; then
         echo Retrying $*
