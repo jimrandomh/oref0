@@ -53,10 +53,9 @@ fi
 #   (4) you have measured the battery life, and set the alert time to a number
 #       of hours that the battery will definitely last for with margin for error
 
-# Get time-of-boot and time-now measured in seconds since epoch
-TIME_OF_BOOT="$(date --date="$(uptime --since)" +%s)"
-TIME_NOW="$(date +%s)"
-TIME_SINCE_BOOT_S=$((TIME_NOW-TIME_OF_BOOT))
+# Get uptime. Note that this has to use /proc/uptime, rather than uptime
+# --since or anything like that, because on startup the clock will be incorrect.
+TIME_SINCE_BOOT_SECS=$(cat /proc/uptime |cut -d ' ' -f 1)
 UPTIME_WARN_HOURS="$(get_pref_float .uptime_warn_hours 12)"
 if ((UPTIME_WARN_HOURS*3600 > TIME_SINCE_BOOT)); then
     oref0-send-notification \
