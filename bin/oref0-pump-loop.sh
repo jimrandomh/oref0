@@ -35,41 +35,9 @@ The main pump loop. Syncs with an insulin pump, enacts temporary basals and
 SMB boluses. Normally runs from crontab.
 EOT
 
-# old pump-loop
-old_main() {
-    prep
-    if ! overtemp; then
-        until( \
-            echo && echo Starting basal-only pump-loop at $(date): \
-            && wait_for_bg \
-            && wait_for_silence \
-            && if_mdt_get_bg \
-            && refresh_old_pumphistory_enact \
-            && refresh_old_pumphistory_24h \
-            && refresh_old_profile \
-            && touch /tmp/pump_loop_enacted -r monitor/glucose.json \
-            && ( refresh_temp_and_enact || ( smb_verify_status && refresh_temp_and_enact ) ) \
-            && refresh_pumphistory_and_enact \
-            && refresh_profile \
-            && refresh_pumphistory_24h \
-            && touch /tmp/pump_loop_success \
-            && echo Completed basal-only pump-loop at $(date) \
-            && touch /tmp/pump_loop_completed -r /tmp/pump_loop_enacted \
-            && echo); do
-                # checking to see if the log reports out that it is on % basal type, which blocks remote temps being set
-                if grep -q "percent" monitor/temp_basal.json; then
-                    echo "Pssst! Your pump is set to % basal type. The pump won’t accept temporary basal rates in this mode. Change it to absolute u/hr, and temporary basal rates will then be able to be set."
-                fi
-                # On a random subset of failures, mmtune
-                echo Error, retrying \
-                && maybe_mmtune
-                sleep 5
-        done
-    fi
-}
-
 # main pump-loop
 main() {
+    check_duty_cycle
     prep
     if ! overtemp; then
         echo && echo "Starting oref0-pump-loop at $(date) with $upto30s second wait_for_silence:"
@@ -151,6 +119,81 @@ function fail {
     exit 1
 }
 
+# The function "check_duty_cycle" checks if the loop has to run and it returns 0 if so.
+# It exits the script with code 0 otherwise.
+# The desicion is based on the time since last *successful* loop.
+# !Note duty cycle times are set in seconds.
+#
+# Additionally it may start an "emergency action" if enabled.
+# Possible actions are usb power cycling or reboot the system.
+# The EMERGENCY_ACTION variable sets the allowable time between successful loops.
+# If no loop has completed in that time, it performs the enabled actions.
+# !Note to enable a emergency action use 0 to enable and 1 to disable
+#
+# The intention is two fold:
+# First the battery consumption is reduced (Pump and Pi) if the loop runs less often.
+# This is most dramatic for Enlite CGM, where wait_for_bg can't be used.
+# Secondly, if Carelink USB is used with Enlite, and wait_for_silence can't be used, this
+# prevents the loop from disrupting the communication between the pump and enlite sensors.
+#
+# Use DUTY_CYCLE=0 (default) if you don't want to limit the loop
+#
+# Suggestion for Carelink USB users are
+# DUTY_CYCLE=120
+# EMERGENCY_ACTION=900
+# REBOOT_ENABLE=0        #0=true
+# USB_RESET_ENABLE=0    #0=true
+#
+# Default is DUTY_CYCLE=0 to disable this feature.
+DUTY_CYCLE=${DUTY_CYCLE:-0}
+
+EMERGENCY_ACTION=${EMERGENCY_ACTION:-900}
+REBOOT_ENABLE=${REBOOT_ENABLE:-1}          #0=true
+USB_RESET_ENABLE=${USB_RESET_ENABLE:-1}    #0=true
+
+function check_duty_cycle {
+    if [ "$DUTY_CYCLE" -gt "0" ]; then
+        if [ -e /tmp/pump_loop_success ]; then
+            DIFF_SECONDS=$(expr $(date +%s) - $(stat -c %Y /tmp/pump_loop_success))
+
+            if ([ $USB_RESET_ENABLE ] || [ $REBOOT_ENABLE ]) && [ "$DIFF_SECONDS" -gt "$EMERGENCY_ACTION" ]; then
+                if [ $USB_RESET_ENABLE ]; then
+                    USB_RESET_DIFF=$EMERGENCY_ACTION
+                    if [ -e /tmp/usp_power_cycled ]; then
+                        USB_RESET_DIFF=$(expr $(date +%s) - $(stat -c %Y /tmp/usp_power_cycled))
+                    fi
+
+                    if [ "$USB_RESET_DIFF" -gt "$EMERGENCY_ACTION" ]; then
+                        # file is old --> power-cycling is long time ago (most probably not this round) --> power-cycling
+                        echo -n "$DIFF_SECONDS (of $DUTY_CYCLE) since last run --> trying to reset USB... "
+                        /usr/local/bin/oref0-reset-usb 2>&3 >&4
+                        touch /tmp/usp_power_cycled
+                        echo " done. --> start new cycle."
+                        return 0 #return to loop routine
+                    fi
+                fi
+                # if usb reset doesn't help or is not enabled --> reboot system
+                if [ $REBOOT_ENABLE ]; then
+                    echo "$DIFF_SECONDS (of $DUTY_CYCLE) since last run --> rebooting."
+                    sudo shutdown -r now
+                    exit 0
+                fi
+            elif [ "$DIFF_SECONDS" -gt "$DUTY_CYCLE" ]; then
+                echo "$DIFF_SECONDS (of $DUTY_CYCLE) since last run --> start new cycle."
+                return 0
+            else
+                echo "$DIFF_SECONDS (of $DUTY_CYCLE) since last run --> stop now."
+                exit 0
+            fi
+        else
+            echo "/tmp/pump_loop_success does not exist; create it to start the loop duty cycle."
+            # if pump_loop_success does not exist, use the system uptime
+            touch -d "$(cat /proc/uptime | awk '{print $1}') seconds ago" /tmp/pump_loop_success
+            return 0
+        fi
+    fi
+}
+
 
 function smb_reservoir_before {
     # Refresh reservoir.json and pumphistory.json
@@ -213,7 +256,11 @@ function smb_suggest {
 }
 
 function determine_basal {
-    timerun oref0-determine-basal monitor/iob.json monitor/temp_basal.json monitor/glucose.json settings/profile.json settings/autosens.json monitor/meal.json --microbolus --reservoir monitor/reservoir.json > enact/smb-suggested.json
+    if ( grep -q 12 settings/model.json ); then
+      timerun oref0-determine-basal monitor/iob.json monitor/temp_basal.json monitor/glucose.json settings/profile.json settings/autosens.json monitor/meal.json --reservoir monitor/reservoir.json > enact/smb-suggested.json
+    else
+      timerun oref0-determine-basal monitor/iob.json monitor/temp_basal.json monitor/glucose.json settings/profile.json settings/autosens.json monitor/meal.json --microbolus --reservoir monitor/reservoir.json > enact/smb-suggested.json
+    fi
 }
 
 # enact the appropriate temp before SMB'ing, (only if smb_verify_enacted fails or a 0 duration temp is requested)
@@ -292,6 +339,10 @@ function smb_verify_status {
         unsuspend_if_no_temp
         refresh_pumphistory_and_meal
         false
+    fi \
+    && if grep -q 12 monitor/status.json; then
+    echo -n "x12 model detected."
+        true
     fi
 }
 
@@ -425,13 +476,18 @@ function preflight {
     echo -n "Preflight "
     # only 515, 522, 523, 715, 722, 723, 554, and 754 pump models have been tested with SMB
     ( timerun openaps report invoke settings/model.json || timerun openaps report invoke settings/model.json ) 2>&3 >&4 | tail -1 \
-    && ( egrep -q "[57](15|22|23|54)" settings/model.json || (grep 12 settings/model.json && die "error: x12 pumps do support SMB safety checks: quitting to restart with basal-only pump-loop") ) \
+    && ( egrep -q "[57](15|22|23|54)" settings/model.json || (grep -q 12 settings/model.json && echo -n "(x12 models do not support SMB safety checks, SMB will not be available.) ") ) \
     && echo -n "OK. " \
     || ( echo -n "fail. "; false )
 }
 
 # reset radio, init world wide pump (if applicable), mmtune, and wait_for_silence 60 if no signal
 function mmtune {
+    if grep "carelink" pump.ini 2>&1 >/dev/null; then
+    echo "using carelink; skipping mmtune"
+        return
+    fi
+
     # TODO: remove reset_spi_serial.py once oref0_init_pump_comms.py is fixed to do it correctly
     if [[ $port == "/dev/spidev5.1" ]]; then
         reset_spi_serial.py 2>&3
@@ -478,6 +534,10 @@ function any_pump_comms {
 
 # listen for $1 seconds of silence (no other rigs talking to pump) before continuing
 function wait_for_silence {
+    if grep "carelink" pump.ini 2>&1 >/dev/null; then
+    echo "using carelink; not waiting for silence"
+        return
+    fi
     if [ -z $1 ]; then
         waitfor=40
     else
@@ -555,13 +615,6 @@ function enact {
     echo -n "enact/enacted.json: " && cat enact/enacted.json | jq -C -c .
 }
 
-# used by old pump-loop only
-# refresh pumphistory if it's more than 15m old and enact
-function refresh_old_pumphistory_enact {
-    find monitor/ -mmin -15 -size +100c | grep -q pumphistory-zoned \
-    || ( echo -n "Old pumphistory: " && refresh_pumphistory_and_meal && enact )
-}
-
 # refresh pumphistory if it's more than 30m old, but don't enact
 function refresh_old_pumphistory {
     find monitor/ -mmin -30 -size +100c | grep -q pumphistory-zoned \
@@ -597,7 +650,7 @@ function get_settings {
         # On the x12 pumps, these 'reports' are simulated by static json files created during the oref0-setup.sh run.
         NON_X12_ITEMS="settings/bg_targets.json"
     else
-        # On all other supported pumps, these reports work. 
+        # On all other supported pumps, these reports work.
         NON_X12_ITEMS="settings/bg_targets_raw.json settings/bg_targets.json settings/basal_profile.json settings/settings.json"
     fi
     retry_return timerun openaps report invoke settings/model.json settings/insulin_sensitivities_raw.json settings/insulin_sensitivities.json settings/carb_ratios.json $NON_X12_ITEMS 2>&3 >&4 | tail -1 || return 1
@@ -765,8 +818,4 @@ try_return() {
     "$@" || { echo "Couldn't $*" - continuing; return 1; }
 }
 
-if grep 12 settings/model.json; then
-    old_main "$@"
-else
-    main "$@"
-fi
+main "$@"
