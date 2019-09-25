@@ -30,7 +30,7 @@ main() {
     fi
     if ifconfig | egrep -q "wlan0" >/dev/null; then
     #if [[ $(ip -4 -o addr show dev wlan0 | awk '{split($4,a,"/");print a[1]}') = $(print_local_ip wlan0) ]]; then
-        print_wifi_name
+        log_wifi_name
         echo -n "At $(date) my local wifi IP is: "
         print_local_ip wlan0
     fi
@@ -45,8 +45,8 @@ main() {
     fi
     if PUBLIC_IP=$(check_ip) ; then
         echo "At $(date) my public IP is: $PUBLIC_IP"
-        WLAN_IP="$(ifconfig wlan0 |grep 'inet addr')"
-        notify_ip_change "$PUBLIC_IP" "$WLAN_IP"
+        WLAN_IP="$(print_local_ip wlan0)"
+        notify_ip_change "$PUBLIC_IP" "$WLAN_IP" "$(print_wifi_name)"
         stop_hotspot
         if has_ip wlan0 && has_ip bnep0; then
             # if online via BT w/o a DHCP IP, cycle wifi
@@ -79,7 +79,7 @@ main() {
         fi
     else
         echo
-        print_wifi_name
+        log_wifi_name
         if ! has_ip wlan0; then
             wifi_dhcp_renew
         fi
@@ -93,7 +93,7 @@ main() {
             bt_connect $MACs
             ifconfig | egrep -A6 "wlan|bnep"
         fi
-        #print_wifi_name
+        #log_wifi_name
         if check_ip >/dev/null; then
             # if we're online after activating bluetooth, shut down any local-access hotspot we're running
             stop_hotspot
@@ -117,12 +117,21 @@ function print_bluetooth_name {
     #echo ${MACs}
 }
 
-function print_wifi_name {
+function log_wifi_name {
     SSID=$(iwgetid -r wlan0 | nonl)
     if [[ ! -z $SSID ]]; then
         echo "At $(date) my wifi network name is $SSID"
     else
         echo "At $(date) my wifi is not connected"
+    fi
+}
+
+function print_wifi_name {
+    SSID=$(iwgetid -r wlan0 | nonl)
+    if [[ ! -z $SSID ]]; then
+        echo "$SSID"
+    else
+        echo ""
     fi
 }
 
@@ -318,18 +327,19 @@ function restart_networking {
 function notify_ip_change {
     PUBLIC_IP="$1"
     WLAN_IP="$2"
-    COMBINED_IP="$1 $2"
-    LAST_IP="$(cat /tmp/last_ipaddr)"
+    NETWORK_NAME="$3"
+    MESSAGE="Wifi network: $NETWORK_NAME; Public IP: $PUBLIC_IP; Wifi IP: $WLAN_IP"
+    LAST_MESSAGE="$(cat /tmp/last_ipaddr)"
     # IP address changed since last successful notification?
-    if [ "$COMBINED_IP" != "$LAST_IP" ]; then
+    if [ "$MESSAGE" != "$LAST_MESSAGE" ]; then
         echo "IP address changed; sending Pushover notification"
         oref0-send-notification \
             --title="OpenAPS rig IP address" \
-            --message="$COMBINED_IP" \
+            --message="$MESSAGE" \
             --cooldown=0 \
             --config-prefix="notifyip" \
             --priority=-2 \
-            && echo "$COMBINED_IP" >/tmp/last_ipaddr
+            && echo -n "$MESSAGE" >/tmp/last_ipaddr
     fi
 }
 
