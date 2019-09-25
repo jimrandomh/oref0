@@ -43,8 +43,9 @@ main() {
     else
         echo "At $(date) my Bluetooth PAN is not connected"
     fi
-    echo -n "At $(date) my public IP is: "
-    if check_ip; then
+    if MY_IPADDR=$(check_ip) ; then
+        echo -n "At $(date) my public IP is: $MY_IPADDR"
+        notify_ip_change $MY_IPADDR
         stop_hotspot
         if has_ip wlan0 && has_ip bnep0; then
             # if online via BT w/o a DHCP IP, cycle wifi
@@ -311,6 +312,19 @@ function restart_networking {
     sudo /etc/init.d/networking start
     echo "and getting new wlan0 IP"
     dhclient_restart
+}
+
+function notify_ip_change {
+    IP="$1"
+    # IP address changed since last successful notification?
+    if [ ! -f "/tmp/last_ipaddr" || $(cat /tmp/last_ipaddr) != "$IP" ]; then
+        oref0-send-notification \
+            --title "OpenAPS rig IP address" \
+            --message "$IP" \
+            --config-prefix="notifyip" \
+            --priority=-2 \
+            && echo "$IP" >/tmp/last_ipaddr
+    fi
 }
 
 main "$@"
