@@ -6,13 +6,15 @@ usage "$@" <<EOT
 Usage: $self <TOKEN> <USER> [enact/suggested.json] [none] [15] [carbs|insulin]
 EOT
 
+DEFAULT_PRIORITY=2
+
 TOKEN=$1
 USER=$2
 FILE=${3-enact/suggested.json}
 SOUND=${4-none}
 SNOOZE=${5-15}
 ONLYFOR=${6-carbs}
-PRIORITY=0
+PRIORITY=$DEFAULT_PRIORITY
 RETRY=60
 EXPIRE=600
 
@@ -67,7 +69,7 @@ fi
 
 # Set priority to the default if it is an invalid value
 if ((PRIORITY < -2)) || ((PRIORITY > 2)); then
-    PRIORITY=0
+    PRIORITY=$DEFAULT_PRIORITY
 fi
 
 if ((PRIORITY == 2)); then
