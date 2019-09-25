@@ -43,9 +43,10 @@ main() {
     else
         echo "At $(date) my Bluetooth PAN is not connected"
     fi
-    if MY_IPADDR=$(check_ip) ; then
-        echo -n "At $(date) my public IP is: $MY_IPADDR"
-        notify_ip_change $MY_IPADDR
+    if PUBLIC_IP=$(check_ip) ; then
+        echo "At $(date) my public IP is: $PUBLIC_IP"
+        WLAN_IP="$(ifconfig wlan0 |grep 'inet addr')"
+        notify_ip_change "$PUBLIC_IP" "$WLAN_IP"
         stop_hotspot
         if has_ip wlan0 && has_ip bnep0; then
             # if online via BT w/o a DHCP IP, cycle wifi
@@ -315,15 +316,20 @@ function restart_networking {
 }
 
 function notify_ip_change {
-    IP="$1"
+    PUBLIC_IP="$1"
+    WLAN_IP="$2"
+    COMBINED_IP="$1 $2"
+    LAST_IP="$(cat /tmp/last_ipaddr)"
     # IP address changed since last successful notification?
-    if [ ! -f "/tmp/last_ipaddr" || $(cat /tmp/last_ipaddr) != "$IP" ]; then
+    if [ "$COMBINED_IP" != "$LAST_IP" ]; then
+        echo "IP address changed; sending Pushover notification"
         oref0-send-notification \
-            --title "OpenAPS rig IP address" \
-            --message "$IP" \
+            --title="OpenAPS rig IP address" \
+            --message="$COMBINED_IP" \
+            --cooldown=0 \
             --config-prefix="notifyip" \
             --priority=-2 \
-            && echo "$IP" >/tmp/last_ipaddr
+            && echo "$COMBINED_IP" >/tmp/last_ipaddr
     fi
 }
 

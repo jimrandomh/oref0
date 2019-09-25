@@ -76,8 +76,6 @@ Exit status:
       or some other problem.
 EOT
 
-assert_pwd_is_myopenaps
-
 TITLE="OpenAPS Alert"
 MESSAGE="-"
 CONFIG_PREFIX=""
